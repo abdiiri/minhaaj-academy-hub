@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      classes: {
+        Row: {
+          academic_year: string
+          created_at: string
+          curriculum: string
+          id: string
+          level: string
+          name: string
+          section: string | null
+          subjects: string[] | null
+          teacher_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: string
+          created_at?: string
+          curriculum: string
+          id?: string
+          level: string
+          name: string
+          section?: string | null
+          subjects?: string[] | null
+          teacher_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          curriculum?: string
+          id?: string
+          level?: string
+          name?: string
+          section?: string | null
+          subjects?: string[] | null
+          teacher_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -43,6 +90,122 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      staff: {
+        Row: {
+          assigned_classes: string[] | null
+          created_at: string
+          email: string
+          employee_id: string
+          first_name: string
+          id: string
+          join_date: string
+          last_name: string
+          phone: string | null
+          photo_url: string | null
+          role: string
+          status: string
+          subjects: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_classes?: string[] | null
+          created_at?: string
+          email: string
+          employee_id: string
+          first_name: string
+          id?: string
+          join_date?: string
+          last_name: string
+          phone?: string | null
+          photo_url?: string | null
+          role?: string
+          status?: string
+          subjects?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_classes?: string[] | null
+          created_at?: string
+          email?: string
+          employee_id?: string
+          first_name?: string
+          id?: string
+          join_date?: string
+          last_name?: string
+          phone?: string | null
+          photo_url?: string | null
+          role?: string
+          status?: string
+          subjects?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          admission_number: string
+          class_id: string | null
+          created_at: string
+          curriculum: string
+          date_of_birth: string
+          enrollment_date: string
+          first_name: string
+          gender: string
+          id: string
+          last_name: string
+          parent_email: string | null
+          parent_name: string | null
+          parent_phone: string | null
+          photo_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admission_number: string
+          class_id?: string | null
+          created_at?: string
+          curriculum: string
+          date_of_birth: string
+          enrollment_date?: string
+          first_name: string
+          gender: string
+          id?: string
+          last_name: string
+          parent_email?: string | null
+          parent_name?: string | null
+          parent_phone?: string | null
+          photo_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admission_number?: string
+          class_id?: string | null
+          created_at?: string
+          curriculum?: string
+          date_of_birth?: string
+          enrollment_date?: string
+          first_name?: string
+          gender?: string
+          id?: string
+          last_name?: string
+          parent_email?: string | null
+          parent_name?: string | null
+          parent_phone?: string | null
+          photo_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
