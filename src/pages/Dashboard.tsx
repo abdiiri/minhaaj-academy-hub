@@ -55,7 +55,7 @@ const activityIcons = {
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return (
     <DashboardLayout>
@@ -64,7 +64,7 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Welcome back, {user?.name?.split(' ')[0]}!
+              Welcome back, {profile?.name?.split(' ')[0] || user?.email?.split('@')[0]}!
             </h1>
             <p className="text-muted-foreground mt-1">
               Here's what's happening at Minhaaj Academy today.

@@ -1,5 +1,25 @@
 // User and Role Types
+// Role type matching database enum
 export type UserRole = 'admin' | 'staff' | 'parent';
+
+// Database profile type
+export interface Profile {
+  id: string;
+  user_id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Database user role type
+export interface UserRoleRecord {
+  id: string;
+  user_id: string;
+  role: UserRole;
+  created_at: string;
+}
 
 export interface User {
   id: string;
