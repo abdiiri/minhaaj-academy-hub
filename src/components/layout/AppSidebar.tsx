@@ -35,7 +35,7 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { user, logout } = useAuth();
+  const { user, profile, role, logout } = useAuth();
   const location = useLocation();
   const { toggleSidebar, open } = useSidebar();
 
@@ -43,10 +43,10 @@ export function AppSidebar() {
 
   // Filter menu items based on role
   const filteredMenuItems = menuItems.filter(item => {
-    if (user?.role === 'parent') {
+    if (role === 'parent') {
       return ['Dashboard', 'Payments'].includes(item.title);
     }
-    if (user?.role === 'staff') {
+    if (role === 'staff') {
       return ['Dashboard', 'Students', 'Classes'].includes(item.title);
     }
     return true; // Admin sees all
@@ -107,13 +107,13 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border">
-        {open && user && (
+        {open && (profile || user) && (
           <div className="mb-3 px-2">
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {user.name}
+              {profile?.name || user?.email?.split('@')[0]}
             </p>
             <p className="text-xs text-sidebar-foreground/70 capitalize">
-              {user.role}
+              {role || 'User'}
             </p>
           </div>
         )}
