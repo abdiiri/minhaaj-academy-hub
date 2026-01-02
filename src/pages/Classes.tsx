@@ -28,11 +28,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useClasses, ClassInsert, ClassRecord } from '@/hooks/useClasses';
 import { useStaff } from '@/hooks/useStaff';
 import { useStudents } from '@/hooks/useStudents';
+import { ClassForm } from '@/components/forms/ClassForm';
 import { 
   BookOpen, 
   Users, 
@@ -128,102 +127,11 @@ export default function Classes() {
     setDeleteId(null);
   };
 
-  const ClassForm = ({ onSubmit, submitLabel }: { onSubmit: () => void; submitLabel: string }) => (
-    <div className="grid gap-4 py-4">
-      <div className="space-y-2">
-        <Label>Class Name</Label>
-        <Input 
-          placeholder="e.g., Grade 4A" 
-          value={formData.name}
-          onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Curriculum</Label>
-        <Select 
-          value={formData.curriculum} 
-          onValueChange={v => setFormData(prev => ({ ...prev, curriculum: v as 'CBE' | 'Edexcel' | 'Islamic' }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select curriculum" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="CBE">CBE</SelectItem>
-            <SelectItem value="Edexcel">Edexcel</SelectItem>
-            <SelectItem value="Islamic">Islamic</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Level</Label>
-        <Select 
-          value={formData.level} 
-          onValueChange={v => setFormData(prev => ({ ...prev, level: v }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Kindergarten">Kindergarten</SelectItem>
-            <SelectItem value="Primary">Primary</SelectItem>
-            <SelectItem value="Junior School">Junior School</SelectItem>
-            <SelectItem value="iPrimary">iPrimary</SelectItem>
-            <SelectItem value="iLowerSec">iLowerSec</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Class Teacher</Label>
-        <Select 
-          value={formData.teacher_id || 'none'} 
-          onValueChange={v => setFormData(prev => ({ ...prev, teacher_id: v === 'none' ? undefined : v }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Assign teacher" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No teacher assigned</SelectItem>
-            {teachers.map(t => (
-              <SelectItem key={t.id} value={t.id}>
-                {t.first_name} {t.last_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Subjects (comma separated)</Label>
-        <Input 
-          placeholder="Mathematics, English, Science, etc." 
-          value={formData.subjects?.join(', ') || ''}
-          onChange={e => setFormData(prev => ({ 
-            ...prev, 
-            subjects: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-          }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Academic Year</Label>
-        <Input 
-          placeholder="2025/2026" 
-          value={formData.academic_year}
-          onChange={e => setFormData(prev => ({ ...prev, academic_year: e.target.value }))}
-        />
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={() => { 
-          setIsAddDialogOpen(false); 
-          setIsEditDialogOpen(false); 
-          resetForm(); 
-        }}>
-          Cancel
-        </Button>
-        <Button className="gradient-primary" onClick={onSubmit}>
-          {submitLabel}
-        </Button>
-      </div>
-    </div>
-  );
+  const handleCancel = () => {
+    setIsAddDialogOpen(false);
+    setIsEditDialogOpen(false);
+    resetForm();
+  };
 
   if (loading) {
     return (
@@ -275,7 +183,14 @@ export default function Classes() {
                     Set up a new class for the academic year.
                   </DialogDescription>
                 </DialogHeader>
-                <ClassForm onSubmit={handleAdd} submitLabel="Create Class" />
+                <ClassForm 
+                  formData={formData}
+                  setFormData={setFormData}
+                  teachers={teachers}
+                  onSubmit={handleAdd}
+                  onCancel={handleCancel}
+                  submitLabel="Create Class"
+                />
               </DialogContent>
             </Dialog>
           </div>
@@ -387,7 +302,14 @@ export default function Classes() {
                 Update the class details.
               </DialogDescription>
             </DialogHeader>
-            <ClassForm onSubmit={handleUpdate} submitLabel="Save Changes" />
+            <ClassForm 
+              formData={formData}
+              setFormData={setFormData}
+              teachers={teachers}
+              onSubmit={handleUpdate}
+              onCancel={handleCancel}
+              submitLabel="Save Changes"
+            />
           </DialogContent>
         </Dialog>
 
