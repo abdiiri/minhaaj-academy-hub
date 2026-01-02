@@ -13,13 +13,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,28 +22,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Label } from '@/components/ui/label';
 import { useStaff, StaffInsert, StaffMember } from '@/hooks/useStaff';
+import { useAuth } from '@/contexts/AuthContext';
+import { StaffForm } from '@/components/forms/StaffForm';
 import { 
   Search, 
   Plus, 
-  Download, 
-  Eye, 
   Edit, 
   Trash2,
   Users,
   Mail,
   Phone,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function StaffPage() {
   const { staff, loading, addStaff, updateStaff, deleteStaff } = useStaff();
+  const { role } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  
+  const isAdmin = role === 'admin';
   
   // Form state
   const [formData, setFormData] = useState<StaffInsert>({
@@ -129,113 +125,11 @@ export default function StaffPage() {
     setDeleteId(null);
   };
 
-  const StaffForm = ({ onSubmit, submitLabel }: { onSubmit: () => void; submitLabel: string }) => (
-    <div className="grid grid-cols-2 gap-4 py-4">
-      <div className="space-y-2">
-        <Label>Employee ID</Label>
-        <Input 
-          placeholder="EMP-001" 
-          value={formData.employee_id}
-          onChange={e => setFormData(prev => ({ ...prev, employee_id: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Status</Label>
-        <Select 
-          value={formData.status} 
-          onValueChange={v => setFormData(prev => ({ ...prev, status: v as 'active' | 'inactive' }))}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>First Name</Label>
-        <Input 
-          placeholder="Enter first name" 
-          value={formData.first_name}
-          onChange={e => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Last Name</Label>
-        <Input 
-          placeholder="Enter last name" 
-          value={formData.last_name}
-          onChange={e => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Email</Label>
-        <Input 
-          type="email" 
-          placeholder="staff@minhaaj.ac.ke" 
-          value={formData.email}
-          onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Phone</Label>
-        <Input 
-          placeholder="+254 7XX XXX XXX" 
-          value={formData.phone}
-          onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Role</Label>
-        <Select 
-          value={formData.role} 
-          onValueChange={v => setFormData(prev => ({ ...prev, role: v as 'teacher' | 'admin_staff' | 'support' }))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="teacher">Teacher</SelectItem>
-            <SelectItem value="admin_staff">Admin Staff</SelectItem>
-            <SelectItem value="support">Support Staff</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>Join Date</Label>
-        <Input 
-          type="date" 
-          value={formData.join_date}
-          onChange={e => setFormData(prev => ({ ...prev, join_date: e.target.value }))}
-        />
-      </div>
-      <div className="space-y-2 col-span-2">
-        <Label>Subjects (comma separated)</Label>
-        <Input 
-          placeholder="Mathematics, Science, etc." 
-          value={formData.subjects?.join(', ') || ''}
-          onChange={e => setFormData(prev => ({ 
-            ...prev, 
-            subjects: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-          }))}
-        />
-      </div>
-      <div className="col-span-2 flex justify-end gap-2">
-        <Button variant="outline" onClick={() => { 
-          setIsAddDialogOpen(false); 
-          setIsEditDialogOpen(false); 
-          resetForm(); 
-        }}>
-          Cancel
-        </Button>
-        <Button className="gradient-primary" onClick={onSubmit}>
-          {submitLabel}
-        </Button>
-      </div>
-    </div>
-  );
+  const handleCancel = () => {
+    setIsAddDialogOpen(false);
+    setIsEditDialogOpen(false);
+    resetForm();
+  };
 
   if (loading) {
     return (
@@ -262,23 +156,36 @@ export default function StaffPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gradient-primary" onClick={resetForm}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Staff
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Add New Staff Member</DialogTitle>
-                  <DialogDescription>
-                    Enter the staff member's details to add them to the system.
-                  </DialogDescription>
-                </DialogHeader>
-                <StaffForm onSubmit={handleAdd} submitLabel="Add Staff" />
-              </DialogContent>
-            </Dialog>
+            {isAdmin ? (
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gradient-primary" onClick={resetForm}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Staff
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add New Staff Member</DialogTitle>
+                    <DialogDescription>
+                      Enter the staff member's details to add them to the system.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <StaffForm 
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleAdd}
+                    onCancel={handleCancel}
+                    submitLabel="Add Staff"
+                  />
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <ShieldAlert className="h-4 w-4" />
+                <span>View only - Admin access required</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -304,10 +211,12 @@ export default function StaffPage() {
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No staff members yet</h3>
               <p className="text-muted-foreground mb-4">Add your first staff member to get started.</p>
-              <Button onClick={() => { resetForm(); setIsAddDialogOpen(true); }} className="gradient-primary">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Staff
-              </Button>
+              {isAdmin && (
+                <Button onClick={() => { resetForm(); setIsAddDialogOpen(true); }} className="gradient-primary">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Staff
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -365,20 +274,22 @@ export default function StaffPage() {
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(member)}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-destructive hover:bg-destructive/10"
-                      onClick={() => setDeleteId(member.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {isAdmin && (
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(member)}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteId(member.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -394,7 +305,13 @@ export default function StaffPage() {
                 Update the staff member's details.
               </DialogDescription>
             </DialogHeader>
-            <StaffForm onSubmit={handleUpdate} submitLabel="Save Changes" />
+            <StaffForm 
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleUpdate}
+              onCancel={handleCancel}
+              submitLabel="Save Changes"
+            />
           </DialogContent>
         </Dialog>
 

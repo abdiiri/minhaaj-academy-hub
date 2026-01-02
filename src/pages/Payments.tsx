@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -18,20 +20,36 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { mockPayments, mockFeeStructure } from '@/data/mockData';
-import { Payment, FeeStructure } from '@/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { usePayments, PaymentInsert } from '@/hooks/usePayments';
+import { useStudents } from '@/hooks/useStudents';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { 
   CreditCard, 
-  Download, 
   CheckCircle, 
   XCircle, 
   Clock, 
@@ -40,7 +58,9 @@ import {
   Building2,
   Search,
   Eye,
-  Upload
+  Upload,
+  Plus,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -67,19 +87,41 @@ const paymentInstructions = {
 };
 
 export default function Payments() {
-  const [payments, setPayments] = useState<Payment[]>(mockPayments);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const { payments, loading, confirmPayment, rejectPayment, addPayment, uploadProof } = usePayments();
+  const { students } = useStudents();
+  const { role } = useAuth();
   const { toast } = useToast();
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
+  // Add payment form
+  const [formData, setFormData] = useState<PaymentInsert>({
+    student_id: '',
+    amount: 0,
+    payment_method: 'mpesa',
+    reference_number: '',
+    notes: '',
+  });
+  const [proofFile, setProofFile] = useState<File | null>(null);
+
+  const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
+  const canManagePayments = isAdmin || isStaff;
 
   const filteredPayments = payments.filter(payment =>
-    payment.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    payment.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    payment.students?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    payment.students?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    payment.students?.admission_number?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const pendingPayments = payments.filter(p => p.status === 'pending');
-  const approvedPayments = payments.filter(p => p.status === 'approved');
-  const totalCollected = approvedPayments.reduce((sum, p) => sum + p.amount, 0);
+  const confirmedPayments = payments.filter(p => p.status === 'confirmed');
+  const totalCollected = confirmedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -89,28 +131,66 @@ export default function Payments() {
     });
   };
 
-  const handleApprove = (paymentId: string) => {
-    setPayments(payments.map(p => 
-      p.id === paymentId 
-        ? { ...p, status: 'approved', approvedAt: new Date().toISOString(), approvedBy: 'Admin' }
-        : p
-    ));
-    toast({
-      title: 'Payment Approved',
-      description: 'The payment has been approved and balance updated.',
-    });
+  const handleConfirm = async (paymentId: string) => {
+    await confirmPayment(paymentId);
   };
 
-  const handleReject = (paymentId: string) => {
-    setPayments(payments.map(p => 
-      p.id === paymentId ? { ...p, status: 'rejected' } : p
-    ));
-    toast({
-      title: 'Payment Rejected',
-      description: 'The payment has been rejected.',
-      variant: 'destructive',
-    });
+  const handleReject = async () => {
+    if (!rejectId) return;
+    await rejectPayment(rejectId, rejectReason);
+    setRejectId(null);
+    setRejectReason('');
   };
+
+  const handleAddPayment = async () => {
+    if (!formData.student_id || !formData.amount) return;
+    
+    let proofUrl: string | undefined;
+    if (proofFile) {
+      setUploading(true);
+      const url = await uploadProof(proofFile, formData.student_id);
+      if (url) proofUrl = url;
+      setUploading(false);
+    }
+
+    const result = await addPayment({
+      ...formData,
+      proof_image_url: proofUrl,
+    });
+
+    if (result) {
+      setIsAddDialogOpen(false);
+      setFormData({
+        student_id: '',
+        amount: 0,
+        payment_method: 'mpesa',
+        reference_number: '',
+        notes: '',
+      });
+      setProofFile(null);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return <Badge className="bg-success/10 text-success border-success/20"><CheckCircle className="h-3 w-3 mr-1" />Confirmed</Badge>;
+      case 'rejected':
+        return <Badge className="bg-destructive/10 text-destructive border-destructive/20"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge className="bg-warning/10 text-warning border-warning/20"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -123,261 +203,160 @@ export default function Payments() {
               Payments
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage fee payments and view payment records
+              Manage fee payments and confirmations
             </p>
           </div>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export Records
+          <Button size="sm" className="gradient-primary" onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Submit Payment
           </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Collected</p>
-                  <p className="text-2xl font-bold text-success">
-                    KES {totalCollected.toLocaleString()}
-                  </p>
+                  <p className="text-2xl font-bold">KES {totalCollected.toLocaleString()}</p>
                 </div>
-                <div className="p-3 bg-success/10 rounded-xl">
-                  <CheckCircle className="h-6 w-6 text-success" />
-                </div>
+                <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Pending Approvals</p>
-                  <p className="text-2xl font-bold text-warning">
-                    {pendingPayments.length}
-                  </p>
+                  <p className="text-2xl font-bold">{pendingPayments.length}</p>
                 </div>
-                <div className="p-3 bg-warning/10 rounded-xl">
-                  <Clock className="h-6 w-6 text-warning" />
-                </div>
+                <Clock className="h-8 w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Approved Payments</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {approvedPayments.length}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Confirmed Payments</p>
+                  <p className="text-2xl font-bold">{confirmedPayments.length}</p>
                 </div>
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <CreditCard className="h-6 w-6 text-primary" />
-                </div>
+                <CreditCard className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="payments" className="space-y-4">
+        <Tabs defaultValue="records">
           <TabsList>
-            <TabsTrigger value="payments">Payment Records</TabsTrigger>
-            <TabsTrigger value="fees">Fee Structure</TabsTrigger>
+            <TabsTrigger value="records">Payment Records</TabsTrigger>
             <TabsTrigger value="instructions">Payment Instructions</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="payments" className="space-y-4">
-            {/* Search */}
-            <Card>
-              <CardContent className="py-4">
-                <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search by student name or admission number..."
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payments Table */}
+          <TabsContent value="records" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Payment Records</CardTitle>
-                <CardDescription>
-                  {filteredPayments.length} payment records found
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Payment Records</CardTitle>
+                    <CardDescription>{filteredPayments.length} payments found</CardDescription>
+                  </div>
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search payments..."
+                      className="pl-10"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Student</TableHead>
-                        <TableHead>Class</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Method</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPayments.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{payment.studentName}</p>
-                              <p className="text-xs text-muted-foreground">{payment.admissionNumber}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>{payment.className}</TableCell>
-                          <TableCell className="font-medium">
-                            KES {payment.amount.toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(payment.paymentDate), 'dd MMM yyyy')}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="capitalize">
-                              {payment.paymentMethod === 'mpesa' && <Smartphone className="h-3 w-3 mr-1" />}
-                              {payment.paymentMethod === 'bank' && <Building2 className="h-3 w-3 mr-1" />}
-                              {payment.paymentMethod}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={
-                              payment.status === 'approved' ? 'bg-success/10 text-success border-success/20' :
-                              payment.status === 'pending' ? 'bg-warning/10 text-warning border-warning/20' :
-                              'bg-destructive/10 text-destructive border-destructive/20'
-                            }>
-                              {payment.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              {payment.status === 'pending' && (
-                                <>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8 text-success hover:text-success"
-                                    onClick={() => handleApprove(payment.id)}
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8 text-destructive hover:text-destructive"
-                                    onClick={() => handleReject(payment.id)}
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                {filteredPayments.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No payments yet</h3>
+                    <p className="text-muted-foreground">Payments will appear here once submitted.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Student</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Method</TableHead>
+                          <TableHead>Reference</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="fees">
-            <Card>
-              <CardHeader>
-                <CardTitle>Fee Structure 2025/2026</CardTitle>
-                <CardDescription>
-                  Fee breakdown by class level
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Class Level</TableHead>
-                        <TableHead>Term Fee</TableHead>
-                        <TableHead>Admission</TableHead>
-                        <TableHead>Uniform</TableHead>
-                        <TableHead>Books</TableHead>
-                        <TableHead className="font-bold">Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockFeeStructure.map((fee) => (
-                        <TableRow key={fee.id}>
-                          <TableCell className="font-medium">{fee.className}</TableCell>
-                          <TableCell>KES {fee.termFee?.toLocaleString()}</TableCell>
-                          <TableCell>KES {fee.admissionFee?.toLocaleString() || '-'}</TableCell>
-                          <TableCell>KES {fee.uniformFee?.toLocaleString() || '-'}</TableCell>
-                          <TableCell>KES {fee.booksFee?.toLocaleString() || '-'}</TableCell>
-                          <TableCell className="font-bold text-primary">
-                            KES {fee.totalFee.toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredPayments.map((payment) => (
+                          <TableRow key={payment.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{payment.students?.first_name} {payment.students?.last_name}</p>
+                                <p className="text-xs text-muted-foreground">{payment.students?.admission_number}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">KES {Number(payment.amount).toLocaleString()}</TableCell>
+                            <TableCell className="capitalize">{payment.payment_method}</TableCell>
+                            <TableCell>{payment.reference_number || '-'}</TableCell>
+                            <TableCell>{format(new Date(payment.payment_date), 'dd MMM yyyy')}</TableCell>
+                            <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedPayment(payment)}>
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                {canManagePayments && payment.status === 'pending' && (
+                                  <>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => handleConfirm(payment.id)}>
+                                      <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setRejectId(payment.id)}>
+                                      <XCircle className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="instructions">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* M-PESA */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
-                <CardHeader className="pb-3">
+                <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Smartphone className="h-5 w-5 text-success" />
                     M-PESA Payment
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Paybill Number</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-lg">{paymentInstructions.mpesa.paybill}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => copyToClipboard(paymentInstructions.mpesa.paybill, 'Paybill number')}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Paybill Number</p>
+                      <p className="font-mono font-bold text-lg">{paymentInstructions.mpesa.paybill}</p>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Account Format</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold">{paymentInstructions.mpesa.accountNumber} + Adm No.</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => copyToClipboard(paymentInstructions.mpesa.accountNumber, 'Account prefix')}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(paymentInstructions.mpesa.paybill, 'Paybill')}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Instructions:</p>
+                    <p className="font-medium">Instructions:</p>
                     <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
                       {paymentInstructions.mpesa.instructions.map((step, i) => (
                         <li key={i}>{step}</li>
@@ -387,59 +366,188 @@ export default function Payments() {
                 </CardContent>
               </Card>
 
-              {/* Bank Transfer */}
               <Card>
-                <CardHeader className="pb-3">
+                <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-secondary" />
+                    <Building2 className="h-5 w-5 text-primary" />
                     Bank Transfer
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Bank Name</span>
-                      <span className="font-medium">{paymentInstructions.bank.bankName}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Account Name</span>
-                      <span className="font-medium">{paymentInstructions.bank.accountName}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Account Number</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold">{paymentInstructions.bank.accountNumber}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => copyToClipboard(paymentInstructions.bank.accountNumber, 'Account number')}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Bank</p>
+                        <p className="font-medium">{paymentInstructions.bank.bankName}</p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Branch</span>
-                      <span className="font-medium">{paymentInstructions.bank.branch}</span>
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Account Name</p>
+                        <p className="font-medium">{paymentInstructions.bank.accountName}</p>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="p-4 border-2 border-dashed rounded-lg text-center">
-                    <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm font-medium">Upload Payment Proof</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Upload a screenshot of your payment for verification
-                    </p>
-                    <Button variant="outline" size="sm" className="mt-3">
-                      Choose File
-                    </Button>
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Account Number</p>
+                        <p className="font-mono font-bold">{paymentInstructions.bank.accountNumber}</p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(paymentInstructions.bank.accountNumber, 'Account Number')}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Add Payment Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Submit Payment</DialogTitle>
+              <DialogDescription>Submit a new payment with proof.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label>Student</Label>
+                <Select value={formData.student_id} onValueChange={v => setFormData(prev => ({ ...prev, student_id: v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select student" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.first_name} {s.last_name} ({s.admission_number})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Amount (KES)</Label>
+                <Input 
+                  type="number" 
+                  placeholder="0" 
+                  value={formData.amount || ''} 
+                  onChange={e => setFormData(prev => ({ ...prev, amount: Number(e.target.value) }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <Select value={formData.payment_method} onValueChange={v => setFormData(prev => ({ ...prev, payment_method: v }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mpesa">M-PESA</SelectItem>
+                    <SelectItem value="bank">Bank Transfer</SelectItem>
+                    <SelectItem value="cash">Cash</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Reference Number</Label>
+                <Input 
+                  placeholder="Transaction ID" 
+                  value={formData.reference_number || ''} 
+                  onChange={e => setFormData(prev => ({ ...prev, reference_number: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Payment Proof (Image)</Label>
+                <Input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={e => setProofFile(e.target.files?.[0] || null)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Notes</Label>
+                <Textarea 
+                  placeholder="Additional notes..." 
+                  value={formData.notes || ''} 
+                  onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                <Button className="gradient-primary" onClick={handleAddPayment} disabled={uploading}>
+                  {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                  Submit Payment
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Payment Dialog */}
+        <Dialog open={!!selectedPayment} onOpenChange={() => setSelectedPayment(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Payment Details</DialogTitle>
+            </DialogHeader>
+            {selectedPayment && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Student</p>
+                    <p className="font-medium">{selectedPayment.students?.first_name} {selectedPayment.students?.last_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Amount</p>
+                    <p className="font-medium">KES {Number(selectedPayment.amount).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    {getStatusBadge(selectedPayment.status)}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Reference</p>
+                    <p className="font-medium">{selectedPayment.reference_number || '-'}</p>
+                  </div>
+                </div>
+                {selectedPayment.proof_image_url && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Payment Proof</p>
+                    <img src={selectedPayment.proof_image_url} alt="Payment proof" className="max-w-full rounded-lg border" />
+                  </div>
+                )}
+                {selectedPayment.rejection_reason && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Rejection Reason</p>
+                    <p className="text-destructive">{selectedPayment.rejection_reason}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Reject Confirmation */}
+        <AlertDialog open={!!rejectId} onOpenChange={() => setRejectId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reject Payment</AlertDialogTitle>
+              <AlertDialogDescription>
+                Please provide a reason for rejecting this payment.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Textarea 
+              placeholder="Reason for rejection..." 
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleReject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Reject
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

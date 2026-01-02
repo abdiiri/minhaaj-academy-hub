@@ -142,6 +142,65 @@ export type Database = {
         }
         Relationships: []
       }
+      student_payments: {
+        Row: {
+          amount: number
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          proof_image_url: string | null
+          reference_number: string | null
+          rejection_reason: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          proof_image_url?: string | null
+          reference_number?: string | null
+          rejection_reason?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          proof_image_url?: string | null
+          reference_number?: string | null
+          rejection_reason?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           admission_number: string
