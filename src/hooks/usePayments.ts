@@ -11,7 +11,7 @@ export interface PaymentRecord {
   payment_method: string;
   reference_number: string | null;
   proof_image_url: string | null;
-  status: 'pending' | 'confirmed' | 'rejected';
+  status: 'pending' | 'received' | 'confirmed' | 'rejected';
   confirmed_by: string | null;
   confirmed_at: string | null;
   rejection_reason: string | null;
@@ -116,6 +116,48 @@ export function usePayments() {
     }
   };
 
+  // Staff can mark payment as received
+  const markAsReceived = async (paymentId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('student_payments')
+        .update({
+          status: 'received',
+        })
+        .eq('id', paymentId)
+        .select(`
+          *,
+          students (
+            id,
+            first_name,
+            last_name,
+            admission_number,
+            parent_name,
+            parent_email
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      setPayments(prev => prev.map(p => p.id === paymentId ? data as PaymentRecord : p));
+      toast({
+        title: 'Success',
+        description: 'Payment marked as received',
+      });
+      return data;
+    } catch (error: any) {
+      console.error('Error marking payment as received:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update payment',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
+  // Only Admin can confirm/approve payment
   const confirmPayment = async (paymentId: string) => {
     try {
       const { data, error } = await supabase
@@ -144,7 +186,7 @@ export function usePayments() {
       setPayments(prev => prev.map(p => p.id === paymentId ? data as PaymentRecord : p));
       toast({
         title: 'Success',
-        description: 'Payment confirmed successfully',
+        description: 'Payment approved successfully',
       });
       return data;
     } catch (error: any) {
@@ -232,6 +274,7 @@ export function usePayments() {
     payments,
     loading,
     addPayment,
+    markAsReceived,
     confirmPayment,
     rejectPayment,
     uploadProof,

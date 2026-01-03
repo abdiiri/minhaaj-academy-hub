@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,9 +44,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePayments, PaymentInsert } from '@/hooks/usePayments';
 import { useStudents } from '@/hooks/useStudents';
-import { useFeeStructures, FeeStructureInsert } from '@/hooks/useFeeStructures';
+import { useFeeStructures } from '@/hooks/useFeeStructures';
+import { useClasses } from '@/hooks/useClasses';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -62,9 +64,8 @@ import {
   Upload,
   Plus,
   Loader2,
-  Pencil,
-  Trash2,
-  DollarSign
+  ThumbsUp,
+  ShieldCheck
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -91,9 +92,10 @@ const paymentInstructions = {
 };
 
 export default function Payments() {
-  const { payments, loading, confirmPayment, rejectPayment, addPayment, uploadProof } = usePayments();
+  const { payments, loading, confirmPayment, rejectPayment, addPayment, uploadProof, markAsReceived } = usePayments();
   const { students } = useStudents();
-  const { feeStructures, loading: feesLoading, addFeeStructure, updateFeeStructure, deleteFeeStructure } = useFeeStructures();
+  const { feeStructures } = useFeeStructures();
+  const { classes } = useClasses();
   const { role } = useAuth();
   const { toast } = useToast();
   
@@ -114,23 +116,48 @@ export default function Payments() {
   });
   const [proofFile, setProofFile] = useState<File | null>(null);
 
-  // Fee structure state
-  const [isFeeDialogOpen, setIsFeeDialogOpen] = useState(false);
-  const [editingFee, setEditingFee] = useState<typeof feeStructures[0] | null>(null);
-  const [deleteFeeId, setDeleteFeeId] = useState<string | null>(null);
-  const [feeFormData, setFeeFormData] = useState<FeeStructureInsert>({
-    level: '',
-    curriculum: 'CBC',
-    academic_year: '2025/2026',
-    tuition_fee: 0,
-    activity_fee: 0,
-    transport_fee: 0,
-    lunch_fee: 0,
-  });
-
   const isAdmin = role === 'admin';
   const isStaff = role === 'staff';
   const canManagePayments = isAdmin || isStaff;
+
+  // Get fee for selected student
+  const selectedStudent = students.find(s => s.id === formData.student_id);
+  const selectedClass = selectedStudent ? classes.find(c => c.id === selectedStudent.class_id) : null;
+  const applicableFee = selectedClass ? feeStructures.find(f => 
+    f.level === selectedClass.level && 
+    f.curriculum === selectedClass.curriculum &&
+    f.academic_year === selectedClass.academic_year
+  ) : null;
+
+  // Calculate student balances
+  const studentBalances = useMemo(() => {
+    const balances: Record<string, { totalFee: number; totalPaid: number; balance: number }> = {};
+    
+    students.forEach(student => {
+      const studentClass = classes.find(c => c.id === student.class_id);
+      const fee = studentClass ? feeStructures.find(f => 
+        f.level === studentClass.level && 
+        f.curriculum === studentClass.curriculum
+      ) : null;
+      
+      const totalFee = fee ? Number(fee.total_fee) : 0;
+      const studentPayments = payments.filter(p => p.student_id === student.id && p.status === 'confirmed');
+      const totalPaid = studentPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+      
+      balances[student.id] = {
+        totalFee,
+        totalPaid,
+        balance: totalFee - totalPaid
+      };
+    });
+    
+    return balances;
+  }, [students, classes, feeStructures, payments]);
+
+  // Dashboard stats
+  const totalExpectedFees = Object.values(studentBalances).reduce((sum, b) => sum + b.totalFee, 0);
+  const totalCollected = Object.values(studentBalances).reduce((sum, b) => sum + b.totalPaid, 0);
+  const totalOutstanding = Object.values(studentBalances).reduce((sum, b) => sum + Math.max(0, b.balance), 0);
 
   const filteredPayments = payments.filter(payment =>
     payment.students?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -139,8 +166,8 @@ export default function Payments() {
   );
 
   const pendingPayments = payments.filter(p => p.status === 'pending');
+  const receivedPayments = payments.filter(p => p.status === 'received');
   const confirmedPayments = payments.filter(p => p.status === 'confirmed');
-  const totalCollected = confirmedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -150,7 +177,19 @@ export default function Payments() {
     });
   };
 
+  const handleMarkReceived = async (paymentId: string) => {
+    await markAsReceived(paymentId);
+  };
+
   const handleConfirm = async (paymentId: string) => {
+    if (!isAdmin) {
+      toast({
+        title: 'Access Denied',
+        description: 'Only admins can confirm payments.',
+        variant: 'destructive',
+      });
+      return;
+    }
     await confirmPayment(paymentId);
   };
 
@@ -190,52 +229,12 @@ export default function Payments() {
     }
   };
 
-  const handleAddOrUpdateFee = async () => {
-    if (!feeFormData.level || !feeFormData.curriculum) return;
-    
-    if (editingFee) {
-      await updateFeeStructure({ id: editingFee.id, ...feeFormData });
-    } else {
-      await addFeeStructure(feeFormData);
-    }
-    
-    setIsFeeDialogOpen(false);
-    setEditingFee(null);
-    setFeeFormData({
-      level: '',
-      curriculum: 'CBC',
-      academic_year: '2025/2026',
-      tuition_fee: 0,
-      activity_fee: 0,
-      transport_fee: 0,
-      lunch_fee: 0,
-    });
-  };
-
-  const handleEditFee = (fee: typeof feeStructures[0]) => {
-    setEditingFee(fee);
-    setFeeFormData({
-      level: fee.level,
-      curriculum: fee.curriculum,
-      academic_year: fee.academic_year,
-      tuition_fee: fee.tuition_fee,
-      activity_fee: fee.activity_fee,
-      transport_fee: fee.transport_fee,
-      lunch_fee: fee.lunch_fee,
-    });
-    setIsFeeDialogOpen(true);
-  };
-
-  const handleDeleteFee = async () => {
-    if (!deleteFeeId) return;
-    await deleteFeeStructure(deleteFeeId);
-    setDeleteFeeId(null);
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return <Badge className="bg-success/10 text-success border-success/20"><CheckCircle className="h-3 w-3 mr-1" />Confirmed</Badge>;
+        return <Badge className="bg-success/10 text-success border-success/20"><ShieldCheck className="h-3 w-3 mr-1" />Approved</Badge>;
+      case 'received':
+        return <Badge className="bg-primary/10 text-primary border-primary/20"><ThumbsUp className="h-3 w-3 mr-1" />Received</Badge>;
       case 'rejected':
         return <Badge className="bg-destructive/10 text-destructive border-destructive/20"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
       default:
@@ -274,13 +273,24 @@ export default function Payments() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Expected</p>
+                  <p className="text-2xl font-bold">KES {totalExpectedFees.toLocaleString()}</p>
+                </div>
+                <CreditCard className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Collected</p>
-                  <p className="text-2xl font-bold">KES {totalCollected.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-success">KES {totalCollected.toLocaleString()}</p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-success" />
               </div>
@@ -290,10 +300,10 @@ export default function Payments() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Pending Approvals</p>
-                  <p className="text-2xl font-bold">{pendingPayments.length}</p>
+                  <p className="text-sm text-muted-foreground">Outstanding</p>
+                  <p className="text-2xl font-bold text-destructive">KES {totalOutstanding.toLocaleString()}</p>
                 </div>
-                <Clock className="h-8 w-8 text-warning" />
+                <Clock className="h-8 w-8 text-destructive" />
               </div>
             </CardContent>
           </Card>
@@ -301,10 +311,10 @@ export default function Payments() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Confirmed Payments</p>
-                  <p className="text-2xl font-bold">{confirmedPayments.length}</p>
+                  <p className="text-sm text-muted-foreground">Pending Approval</p>
+                  <p className="text-2xl font-bold">{pendingPayments.length + receivedPayments.length}</p>
                 </div>
-                <CreditCard className="h-8 w-8 text-primary" />
+                <Clock className="h-8 w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
@@ -313,7 +323,7 @@ export default function Payments() {
         <Tabs defaultValue="records">
           <TabsList>
             <TabsTrigger value="records">Payment Records</TabsTrigger>
-            <TabsTrigger value="fees">Fee Structure</TabsTrigger>
+            <TabsTrigger value="balances">Student Balances</TabsTrigger>
             <TabsTrigger value="instructions">Payment Instructions</TabsTrigger>
           </TabsList>
 
@@ -376,12 +386,37 @@ export default function Payments() {
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedPayment(payment)}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {canManagePayments && payment.status === 'pending' && (
+                                {/* Staff can mark as received */}
+                                {isStaff && payment.status === 'pending' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-primary" 
+                                    onClick={() => handleMarkReceived(payment.id)}
+                                    title="Mark as Received"
+                                  >
+                                    <ThumbsUp className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {/* Only Admin can confirm/approve */}
+                                {isAdmin && (payment.status === 'pending' || payment.status === 'received') && (
                                   <>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => handleConfirm(payment.id)}>
-                                      <CheckCircle className="h-4 w-4" />
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-success" 
+                                      onClick={() => handleConfirm(payment.id)}
+                                      title="Approve Payment"
+                                    >
+                                      <ShieldCheck className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setRejectId(payment.id)}>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-destructive" 
+                                      onClick={() => setRejectId(payment.id)}
+                                      title="Reject Payment"
+                                    >
                                       <XCircle className="h-4 w-4" />
                                     </Button>
                                   </>
@@ -398,81 +433,60 @@ export default function Payments() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="fees" className="space-y-4">
+          <TabsContent value="balances" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-primary" />
-                      Fee Structure
-                    </CardTitle>
-                    <CardDescription>Tuition fees by class level and curriculum</CardDescription>
-                  </div>
-                  {isAdmin && (
-                    <Button size="sm" className="gradient-primary" onClick={() => setIsFeeDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Fee Structure
-                    </Button>
-                  )}
-                </div>
+                <CardTitle>Student Fee Balances</CardTitle>
+                <CardDescription>View total fees, paid amounts, and outstanding balances</CardDescription>
               </CardHeader>
               <CardContent>
-                {feesLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  </div>
-                ) : feeStructures.length === 0 ? (
-                  <div className="py-12 text-center">
-                    <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No fee structures yet</h3>
-                    <p className="text-muted-foreground">Add fee structures to display tuition information.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Level</TableHead>
-                          <TableHead>Curriculum</TableHead>
-                          <TableHead>Academic Year</TableHead>
-                          <TableHead className="text-right">Tuition</TableHead>
-                          <TableHead className="text-right">Activity</TableHead>
-                          <TableHead className="text-right">Transport</TableHead>
-                          <TableHead className="text-right">Lunch</TableHead>
-                          <TableHead className="text-right">Total</TableHead>
-                          {isAdmin && <TableHead className="text-right">Actions</TableHead>}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {feeStructures.map((fee) => (
-                          <TableRow key={fee.id}>
-                            <TableCell className="font-medium">{fee.level}</TableCell>
-                            <TableCell>{fee.curriculum}</TableCell>
-                            <TableCell>{fee.academic_year}</TableCell>
-                            <TableCell className="text-right">KES {Number(fee.tuition_fee).toLocaleString()}</TableCell>
-                            <TableCell className="text-right">KES {Number(fee.activity_fee).toLocaleString()}</TableCell>
-                            <TableCell className="text-right">KES {Number(fee.transport_fee).toLocaleString()}</TableCell>
-                            <TableCell className="text-right">KES {Number(fee.lunch_fee).toLocaleString()}</TableCell>
-                            <TableCell className="text-right font-bold">KES {Number(fee.total_fee).toLocaleString()}</TableCell>
-                            {isAdmin && (
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-1">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditFee(fee)}>
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteFeeId(fee.id)}>
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            )}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Student</TableHead>
+                        <TableHead>Class</TableHead>
+                        <TableHead className="text-right">Total Fees</TableHead>
+                        <TableHead className="text-right">Amount Paid</TableHead>
+                        <TableHead className="text-right">Balance</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {students.map((student) => {
+                        const balance = studentBalances[student.id] || { totalFee: 0, totalPaid: 0, balance: 0 };
+                        const studentClass = classes.find(c => c.id === student.class_id);
+                        return (
+                          <TableRow key={student.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{student.first_name} {student.last_name}</p>
+                                <p className="text-xs text-muted-foreground">{student.admission_number}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>{studentClass?.name || 'Unassigned'}</TableCell>
+                            <TableCell className="text-right">KES {balance.totalFee.toLocaleString()}</TableCell>
+                            <TableCell className="text-right text-success">KES {balance.totalPaid.toLocaleString()}</TableCell>
+                            <TableCell className="text-right font-bold">
+                              <span className={balance.balance > 0 ? 'text-destructive' : 'text-success'}>
+                                KES {balance.balance.toLocaleString()}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {balance.balance <= 0 ? (
+                                <Badge className="bg-success/10 text-success border-success/20">Paid</Badge>
+                              ) : balance.totalPaid > 0 ? (
+                                <Badge className="bg-warning/10 text-warning border-warning/20">Partial</Badge>
+                              ) : (
+                                <Badge className="bg-destructive/10 text-destructive border-destructive/20">Unpaid</Badge>
+                              )}
+                            </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -546,87 +560,103 @@ export default function Payments() {
 
         {/* Add Payment Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>Submit Payment</DialogTitle>
               <DialogDescription>Submit a new payment with proof.</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label>Student</Label>
-                <Select value={formData.student_id} onValueChange={v => setFormData(prev => ({ ...prev, student_id: v }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select student" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students.map(s => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.first_name} {s.last_name} ({s.admission_number})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <ScrollArea className="flex-1 pr-4">
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label>Student</Label>
+                  <Select value={formData.student_id} onValueChange={v => setFormData(prev => ({ ...prev, student_id: v }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select student" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {students.map(s => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.first_name} {s.last_name} ({s.admission_number})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Auto-fill fee info */}
+                {applicableFee && (
+                  <div className="p-3 bg-muted rounded-lg space-y-1">
+                    <p className="text-sm font-medium">Fee Information</p>
+                    <p className="text-xs text-muted-foreground">
+                      Class: {selectedClass?.name} • Total Fee: KES {Number(applicableFee.total_fee).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Balance: KES {(studentBalances[formData.student_id]?.balance || 0).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Amount (KES)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    value={formData.amount || ''} 
+                    onChange={e => setFormData(prev => ({ ...prev, amount: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Payment Method</Label>
+                  <Select value={formData.payment_method} onValueChange={v => setFormData(prev => ({ ...prev, payment_method: v }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mpesa">M-PESA</SelectItem>
+                      <SelectItem value="bank">Bank Transfer</SelectItem>
+                      <SelectItem value="cash">Cash</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Reference Number</Label>
+                  <Input 
+                    placeholder="Transaction ID" 
+                    value={formData.reference_number || ''} 
+                    onChange={e => setFormData(prev => ({ ...prev, reference_number: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Payment Proof (Image)</Label>
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={e => setProofFile(e.target.files?.[0] || null)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Notes</Label>
+                  <Textarea 
+                    placeholder="Additional notes..." 
+                    value={formData.notes || ''} 
+                    onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Amount (KES)</Label>
-                <Input 
-                  type="number" 
-                  placeholder="0" 
-                  value={formData.amount || ''} 
-                  onChange={e => setFormData(prev => ({ ...prev, amount: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Payment Method</Label>
-                <Select value={formData.payment_method} onValueChange={v => setFormData(prev => ({ ...prev, payment_method: v }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mpesa">M-PESA</SelectItem>
-                    <SelectItem value="bank">Bank Transfer</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Reference Number</Label>
-                <Input 
-                  placeholder="Transaction ID" 
-                  value={formData.reference_number || ''} 
-                  onChange={e => setFormData(prev => ({ ...prev, reference_number: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Payment Proof (Image)</Label>
-                <Input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={e => setProofFile(e.target.files?.[0] || null)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Notes</Label>
-                <Textarea 
-                  placeholder="Additional notes..." 
-                  value={formData.notes || ''} 
-                  onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                <Button className="gradient-primary" onClick={handleAddPayment} disabled={uploading}>
-                  {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                  Submit Payment
-                </Button>
-              </div>
+            </ScrollArea>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+              <Button className="gradient-primary" onClick={handleAddPayment} disabled={uploading}>
+                {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                Submit Payment
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
 
         {/* View Payment Dialog */}
         <Dialog open={!!selectedPayment} onOpenChange={() => setSelectedPayment(null)}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Payment Details</DialogTitle>
             </DialogHeader>
@@ -685,125 +715,6 @@ export default function Payments() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleReject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Reject
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Fee Structure Dialog */}
-        <Dialog open={isFeeDialogOpen} onOpenChange={(open) => {
-          setIsFeeDialogOpen(open);
-          if (!open) {
-            setEditingFee(null);
-            setFeeFormData({
-              level: '',
-              curriculum: 'CBC',
-              academic_year: '2025/2026',
-              tuition_fee: 0,
-              activity_fee: 0,
-              transport_fee: 0,
-              lunch_fee: 0,
-            });
-          }
-        }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingFee ? 'Edit Fee Structure' : 'Add Fee Structure'}</DialogTitle>
-              <DialogDescription>Set tuition fees for a class level.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Level</Label>
-                  <Input 
-                    placeholder="e.g. Grade 1" 
-                    value={feeFormData.level} 
-                    onChange={e => setFeeFormData(prev => ({ ...prev, level: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Curriculum</Label>
-                  <Select value={feeFormData.curriculum} onValueChange={v => setFeeFormData(prev => ({ ...prev, curriculum: v }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CBC">CBC</SelectItem>
-                      <SelectItem value="8-4-4">8-4-4</SelectItem>
-                      <SelectItem value="IGCSE">IGCSE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Academic Year</Label>
-                <Input 
-                  placeholder="2025/2026" 
-                  value={feeFormData.academic_year} 
-                  onChange={e => setFeeFormData(prev => ({ ...prev, academic_year: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Tuition Fee (KES)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0" 
-                    value={feeFormData.tuition_fee || ''} 
-                    onChange={e => setFeeFormData(prev => ({ ...prev, tuition_fee: Number(e.target.value) }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Activity Fee (KES)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0" 
-                    value={feeFormData.activity_fee || ''} 
-                    onChange={e => setFeeFormData(prev => ({ ...prev, activity_fee: Number(e.target.value) }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Transport Fee (KES)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0" 
-                    value={feeFormData.transport_fee || ''} 
-                    onChange={e => setFeeFormData(prev => ({ ...prev, transport_fee: Number(e.target.value) }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Lunch Fee (KES)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0" 
-                    value={feeFormData.lunch_fee || ''} 
-                    onChange={e => setFeeFormData(prev => ({ ...prev, lunch_fee: Number(e.target.value) }))}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsFeeDialogOpen(false)}>Cancel</Button>
-                <Button className="gradient-primary" onClick={handleAddOrUpdateFee}>
-                  {editingFee ? 'Update' : 'Add'} Fee Structure
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete Fee Confirmation */}
-        <AlertDialog open={!!deleteFeeId} onOpenChange={() => setDeleteFeeId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Fee Structure</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this fee structure? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteFee} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
