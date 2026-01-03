@@ -61,6 +61,48 @@ export type Database = {
           },
         ]
       }
+      fee_structures: {
+        Row: {
+          academic_year: string
+          activity_fee: number
+          created_at: string
+          curriculum: string
+          id: string
+          level: string
+          lunch_fee: number
+          total_fee: number | null
+          transport_fee: number
+          tuition_fee: number
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: string
+          activity_fee?: number
+          created_at?: string
+          curriculum: string
+          id?: string
+          level: string
+          lunch_fee?: number
+          total_fee?: number | null
+          transport_fee?: number
+          tuition_fee?: number
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          activity_fee?: number
+          created_at?: string
+          curriculum?: string
+          id?: string
+          level?: string
+          lunch_fee?: number
+          total_fee?: number | null
+          transport_fee?: number
+          tuition_fee?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
