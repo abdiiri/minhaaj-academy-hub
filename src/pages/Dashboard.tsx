@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -5,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useStudents } from '@/hooks/useStudents';
 import { useStaff } from '@/hooks/useStaff';
 import { useClasses } from '@/hooks/useClasses';
+import { usePayments } from '@/hooks/usePayments';
+import { useFeeStructures } from '@/hooks/useFeeStructures';
 import { 
   Users, 
   GraduationCap, 
@@ -12,16 +15,51 @@ import {
   Clock,
   BookOpen,
   TrendingUp,
-  Loader2
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, profile } = useAuth();
+  const { user, profile, role } = useAuth();
   const { students, loading: studentsLoading } = useStudents();
   const { staff, loading: staffLoading } = useStaff();
   const { classes, loading: classesLoading } = useClasses();
+  const { payments, loading: paymentsLoading } = usePayments();
+  const { feeStructures } = useFeeStructures();
 
-  const loading = studentsLoading || staffLoading || classesLoading;
+  const loading = studentsLoading || staffLoading || classesLoading || paymentsLoading;
+  const isAdmin = role === 'admin';
+
+  // Calculate fee stats for admin
+  const feeStats = useMemo(() => {
+    if (!isAdmin) return null;
+
+    let totalExpected = 0;
+    let totalCollected = 0;
+
+    students.forEach(student => {
+      const studentClass = classes.find(c => c.id === student.class_id);
+      const fee = studentClass ? feeStructures.find(f => 
+        f.level === studentClass.level && 
+        f.curriculum === studentClass.curriculum
+      ) : null;
+      
+      if (fee) {
+        totalExpected += Number(fee.total_fee);
+      }
+    });
+
+    const confirmedPayments = payments.filter(p => p.status === 'confirmed');
+    totalCollected = confirmedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+
+    return {
+      totalExpected,
+      totalCollected,
+      outstanding: totalExpected - totalCollected,
+      collectionRate: totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
+    };
+  }, [students, classes, feeStructures, payments, isAdmin]);
 
   const statCards = [
     {
@@ -82,6 +120,84 @@ export default function Dashboard() {
             Academic Year 2025/2026
           </Badge>
         </div>
+
+        {/* Admin Fee Summary */}
+        {isAdmin && feeStats && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Expected Fees</p>
+                    <p className="text-2xl font-bold text-foreground mt-2">
+                      KES {feeStats.totalExpected.toLocaleString()}
+                    </p>
+                    <p className="text-xs mt-2 text-muted-foreground">
+                      {students.length} enrolled students
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                    <CreditCard className="h-6 w-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-success/10 to-success/5 border-success/20">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Collected</p>
+                    <p className="text-2xl font-bold text-success mt-2">
+                      KES {feeStats.totalCollected.toLocaleString()}
+                    </p>
+                    <p className="text-xs mt-2 text-success">
+                      {feeStats.collectionRate}% collection rate
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-success/10 text-success">
+                    <CheckCircle className="h-6 w-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/20">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Outstanding Balance</p>
+                    <p className="text-2xl font-bold text-destructive mt-2">
+                      KES {feeStats.outstanding.toLocaleString()}
+                    </p>
+                    <p className="text-xs mt-2 text-destructive">
+                      Pending collection
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-destructive/10 text-destructive">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pending Approvals</p>
+                    <p className="text-2xl font-bold text-warning mt-2">
+                      {payments.filter(p => p.status === 'pending' || p.status === 'received').length}
+                    </p>
+                    <p className="text-xs mt-2 text-warning">
+                      Awaiting confirmation
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-warning/10 text-warning">
+                    <Clock className="h-6 w-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
