@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/select';
 import { usePayments, PaymentInsert } from '@/hooks/usePayments';
 import { useStudents } from '@/hooks/useStudents';
+import { useFeeStructures, FeeStructureInsert } from '@/hooks/useFeeStructures';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -60,7 +61,10 @@ import {
   Eye,
   Upload,
   Plus,
-  Loader2
+  Loader2,
+  Pencil,
+  Trash2,
+  DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -89,6 +93,7 @@ const paymentInstructions = {
 export default function Payments() {
   const { payments, loading, confirmPayment, rejectPayment, addPayment, uploadProof } = usePayments();
   const { students } = useStudents();
+  const { feeStructures, loading: feesLoading, addFeeStructure, updateFeeStructure, deleteFeeStructure } = useFeeStructures();
   const { role } = useAuth();
   const { toast } = useToast();
   
@@ -108,6 +113,20 @@ export default function Payments() {
     notes: '',
   });
   const [proofFile, setProofFile] = useState<File | null>(null);
+
+  // Fee structure state
+  const [isFeeDialogOpen, setIsFeeDialogOpen] = useState(false);
+  const [editingFee, setEditingFee] = useState<typeof feeStructures[0] | null>(null);
+  const [deleteFeeId, setDeleteFeeId] = useState<string | null>(null);
+  const [feeFormData, setFeeFormData] = useState<FeeStructureInsert>({
+    level: '',
+    curriculum: 'CBC',
+    academic_year: '2025/2026',
+    tuition_fee: 0,
+    activity_fee: 0,
+    transport_fee: 0,
+    lunch_fee: 0,
+  });
 
   const isAdmin = role === 'admin';
   const isStaff = role === 'staff';
@@ -169,6 +188,48 @@ export default function Payments() {
       });
       setProofFile(null);
     }
+  };
+
+  const handleAddOrUpdateFee = async () => {
+    if (!feeFormData.level || !feeFormData.curriculum) return;
+    
+    if (editingFee) {
+      await updateFeeStructure({ id: editingFee.id, ...feeFormData });
+    } else {
+      await addFeeStructure(feeFormData);
+    }
+    
+    setIsFeeDialogOpen(false);
+    setEditingFee(null);
+    setFeeFormData({
+      level: '',
+      curriculum: 'CBC',
+      academic_year: '2025/2026',
+      tuition_fee: 0,
+      activity_fee: 0,
+      transport_fee: 0,
+      lunch_fee: 0,
+    });
+  };
+
+  const handleEditFee = (fee: typeof feeStructures[0]) => {
+    setEditingFee(fee);
+    setFeeFormData({
+      level: fee.level,
+      curriculum: fee.curriculum,
+      academic_year: fee.academic_year,
+      tuition_fee: fee.tuition_fee,
+      activity_fee: fee.activity_fee,
+      transport_fee: fee.transport_fee,
+      lunch_fee: fee.lunch_fee,
+    });
+    setIsFeeDialogOpen(true);
+  };
+
+  const handleDeleteFee = async () => {
+    if (!deleteFeeId) return;
+    await deleteFeeStructure(deleteFeeId);
+    setDeleteFeeId(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -252,6 +313,7 @@ export default function Payments() {
         <Tabs defaultValue="records">
           <TabsList>
             <TabsTrigger value="records">Payment Records</TabsTrigger>
+            <TabsTrigger value="fees">Fee Structure</TabsTrigger>
             <TabsTrigger value="instructions">Payment Instructions</TabsTrigger>
           </TabsList>
 
@@ -326,6 +388,85 @@ export default function Payments() {
                                 )}
                               </div>
                             </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="fees" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5 text-primary" />
+                      Fee Structure
+                    </CardTitle>
+                    <CardDescription>Tuition fees by class level and curriculum</CardDescription>
+                  </div>
+                  {isAdmin && (
+                    <Button size="sm" className="gradient-primary" onClick={() => setIsFeeDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Fee Structure
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {feesLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : feeStructures.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No fee structures yet</h3>
+                    <p className="text-muted-foreground">Add fee structures to display tuition information.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Level</TableHead>
+                          <TableHead>Curriculum</TableHead>
+                          <TableHead>Academic Year</TableHead>
+                          <TableHead className="text-right">Tuition</TableHead>
+                          <TableHead className="text-right">Activity</TableHead>
+                          <TableHead className="text-right">Transport</TableHead>
+                          <TableHead className="text-right">Lunch</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                          {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {feeStructures.map((fee) => (
+                          <TableRow key={fee.id}>
+                            <TableCell className="font-medium">{fee.level}</TableCell>
+                            <TableCell>{fee.curriculum}</TableCell>
+                            <TableCell>{fee.academic_year}</TableCell>
+                            <TableCell className="text-right">KES {Number(fee.tuition_fee).toLocaleString()}</TableCell>
+                            <TableCell className="text-right">KES {Number(fee.activity_fee).toLocaleString()}</TableCell>
+                            <TableCell className="text-right">KES {Number(fee.transport_fee).toLocaleString()}</TableCell>
+                            <TableCell className="text-right">KES {Number(fee.lunch_fee).toLocaleString()}</TableCell>
+                            <TableCell className="text-right font-bold">KES {Number(fee.total_fee).toLocaleString()}</TableCell>
+                            {isAdmin && (
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-1">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditFee(fee)}>
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteFeeId(fee.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            )}
                           </TableRow>
                         ))}
                       </TableBody>
@@ -544,6 +685,125 @@ export default function Payments() {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleReject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Reject
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Fee Structure Dialog */}
+        <Dialog open={isFeeDialogOpen} onOpenChange={(open) => {
+          setIsFeeDialogOpen(open);
+          if (!open) {
+            setEditingFee(null);
+            setFeeFormData({
+              level: '',
+              curriculum: 'CBC',
+              academic_year: '2025/2026',
+              tuition_fee: 0,
+              activity_fee: 0,
+              transport_fee: 0,
+              lunch_fee: 0,
+            });
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingFee ? 'Edit Fee Structure' : 'Add Fee Structure'}</DialogTitle>
+              <DialogDescription>Set tuition fees for a class level.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Level</Label>
+                  <Input 
+                    placeholder="e.g. Grade 1" 
+                    value={feeFormData.level} 
+                    onChange={e => setFeeFormData(prev => ({ ...prev, level: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Curriculum</Label>
+                  <Select value={feeFormData.curriculum} onValueChange={v => setFeeFormData(prev => ({ ...prev, curriculum: v }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CBC">CBC</SelectItem>
+                      <SelectItem value="8-4-4">8-4-4</SelectItem>
+                      <SelectItem value="IGCSE">IGCSE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Academic Year</Label>
+                <Input 
+                  placeholder="2025/2026" 
+                  value={feeFormData.academic_year} 
+                  onChange={e => setFeeFormData(prev => ({ ...prev, academic_year: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tuition Fee (KES)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    value={feeFormData.tuition_fee || ''} 
+                    onChange={e => setFeeFormData(prev => ({ ...prev, tuition_fee: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Activity Fee (KES)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    value={feeFormData.activity_fee || ''} 
+                    onChange={e => setFeeFormData(prev => ({ ...prev, activity_fee: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Transport Fee (KES)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    value={feeFormData.transport_fee || ''} 
+                    onChange={e => setFeeFormData(prev => ({ ...prev, transport_fee: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Lunch Fee (KES)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    value={feeFormData.lunch_fee || ''} 
+                    onChange={e => setFeeFormData(prev => ({ ...prev, lunch_fee: Number(e.target.value) }))}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsFeeDialogOpen(false)}>Cancel</Button>
+                <Button className="gradient-primary" onClick={handleAddOrUpdateFee}>
+                  {editingFee ? 'Update' : 'Add'} Fee Structure
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Fee Confirmation */}
+        <AlertDialog open={!!deleteFeeId} onOpenChange={() => setDeleteFeeId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Fee Structure</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this fee structure? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteFee} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
