@@ -37,6 +37,7 @@ export interface StudentInsert {
   parent_email?: string;
   enrollment_date?: string;
   status?: 'active' | 'inactive' | 'graduated';
+  password?: string; // For new student creation with login credentials
 }
 
 export function useStudents() {
@@ -63,9 +64,12 @@ export function useStudents() {
   };
 
   const addStudent = async (studentData: StudentInsert) => {
+    // Extract password from studentData - don't send to database
+    const { password, ...dbData } = studentData;
+    
     const { data, error } = await supabase
       .from('students')
-      .insert([studentData])
+      .insert([dbData])
       .select(`
         *,
         classes:class_id (name)
@@ -78,7 +82,43 @@ export function useStudents() {
     }
     
     const typedData = data as StudentRecord;
-    toast({ title: 'Success', description: 'Student enrolled successfully' });
+    
+    // If password is provided and we have an email, create auth user via edge function
+    if (password && password.length >= 6 && studentData.parent_email) {
+      try {
+        const response = await supabase.functions.invoke('create-user', {
+          body: {
+            email: studentData.parent_email,
+            password,
+            name: `${studentData.first_name} ${studentData.last_name}`,
+            role: 'student',
+            userType: 'student',
+            recordId: typedData.id
+          }
+        });
+
+        if (response.error) {
+          console.error('Error creating auth user:', response.error);
+          toast({ 
+            title: 'Warning', 
+            description: 'Student added but login account could not be created. ' + (response.error.message || ''),
+            variant: 'destructive' 
+          });
+        } else {
+          toast({ title: 'Success', description: 'Student enrolled with login credentials' });
+        }
+      } catch (err) {
+        console.error('Error invoking create-user:', err);
+        toast({ 
+          title: 'Warning', 
+          description: 'Student added but login account creation failed',
+          variant: 'destructive' 
+        });
+      }
+    } else {
+      toast({ title: 'Success', description: 'Student enrolled successfully' });
+    }
+    
     setStudents(prev => [typedData, ...prev]);
     return data;
   };

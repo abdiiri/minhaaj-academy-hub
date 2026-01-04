@@ -18,9 +18,10 @@ interface StudentFormProps {
   onSubmit: () => void;
   onCancel: () => void;
   submitLabel: string;
+  showPasswordField?: boolean; // Only show when adding new student
 }
 
-export function StudentForm({ formData, setFormData, classes, onSubmit, onCancel, submitLabel }: StudentFormProps) {
+export function StudentForm({ formData, setFormData, classes, onSubmit, onCancel, submitLabel, showPasswordField = false }: StudentFormProps) {
   return (
     <div className="max-h-[60vh] overflow-y-auto pr-2">
       <div className="grid grid-cols-2 gap-4 py-4">
@@ -147,6 +148,20 @@ export function StudentForm({ formData, setFormData, classes, onSubmit, onCancel
             onChange={e => setFormData(prev => ({ ...prev, parent_email: e.target.value }))}
           />
         </div>
+        {showPasswordField && (
+          <div className="space-y-2 col-span-2">
+            <Label>Login Password</Label>
+            <Input 
+              type="password"
+              placeholder="Minimum 6 characters" 
+              value={formData.password || ''}
+              onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Set a password for this student to log in using their parent email. Leave empty if no login account is needed.
+            </p>
+          </div>
+        )}
         <div className="col-span-2 flex justify-end gap-2 pt-4 border-t mt-4">
           <Button variant="outline" onClick={onCancel}>
             Cancel

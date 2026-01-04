@@ -16,9 +16,10 @@ interface StaffFormProps {
   onSubmit: () => void;
   onCancel: () => void;
   submitLabel: string;
+  showPasswordField?: boolean; // Only show when adding new staff
 }
 
-export function StaffForm({ formData, setFormData, onSubmit, onCancel, submitLabel }: StaffFormProps) {
+export function StaffForm({ formData, setFormData, onSubmit, onCancel, submitLabel, showPasswordField = false }: StaffFormProps) {
   return (
     <div className="max-h-[60vh] overflow-y-auto pr-2">
       <div className="grid grid-cols-2 gap-4 py-4">
@@ -114,6 +115,20 @@ export function StaffForm({ formData, setFormData, onSubmit, onCancel, submitLab
           />
           <p className="text-xs text-muted-foreground">Enter multiple subjects separated by commas</p>
         </div>
+        {showPasswordField && (
+          <div className="space-y-2 col-span-2">
+            <Label>Login Password</Label>
+            <Input 
+              type="password"
+              placeholder="Minimum 6 characters" 
+              value={formData.password || ''}
+              onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Set a password for this staff member to log in. Leave empty if no login account is needed.
+            </p>
+          </div>
+        )}
         <div className="col-span-2 flex justify-end gap-2 pt-4 border-t mt-4">
           <Button variant="outline" onClick={onCancel}>
             Cancel
