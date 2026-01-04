@@ -149,6 +149,7 @@ export type Database = {
           status: string
           subjects: string[] | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           assigned_classes?: string[] | null
@@ -165,6 +166,7 @@ export type Database = {
           status?: string
           subjects?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           assigned_classes?: string[] | null
@@ -181,6 +183,7 @@ export type Database = {
           status?: string
           subjects?: string[] | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -261,6 +264,7 @@ export type Database = {
           photo_url: string | null
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           admission_number: string
@@ -279,6 +283,7 @@ export type Database = {
           photo_url?: string | null
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           admission_number?: string
@@ -297,6 +302,7 @@ export type Database = {
           photo_url?: string | null
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {

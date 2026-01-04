@@ -30,6 +30,7 @@ export interface StaffInsert {
   assigned_classes?: string[];
   join_date: string;
   status?: 'active' | 'inactive';
+  password?: string; // For new staff creation with login credentials
 }
 
 export function useStaff() {
@@ -53,9 +54,12 @@ export function useStaff() {
   };
 
   const addStaff = async (staffData: StaffInsert) => {
+    // Extract password from staffData - don't send to database
+    const { password, ...dbData } = staffData;
+    
     const { data, error } = await supabase
       .from('staff')
-      .insert([staffData])
+      .insert([dbData])
       .select()
       .single();
 
@@ -65,7 +69,44 @@ export function useStaff() {
     }
     
     const typedData = data as StaffMember;
-    toast({ title: 'Success', description: 'Staff member added successfully' });
+    
+    // If password is provided, create auth user via edge function
+    if (password && password.length >= 6) {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const response = await supabase.functions.invoke('create-user', {
+          body: {
+            email: staffData.email,
+            password,
+            name: `${staffData.first_name} ${staffData.last_name}`,
+            role: 'staff',
+            userType: 'staff',
+            recordId: typedData.id
+          }
+        });
+
+        if (response.error) {
+          console.error('Error creating auth user:', response.error);
+          toast({ 
+            title: 'Warning', 
+            description: 'Staff added but login account could not be created. ' + (response.error.message || ''),
+            variant: 'destructive' 
+          });
+        } else {
+          toast({ title: 'Success', description: 'Staff member added with login credentials' });
+        }
+      } catch (err) {
+        console.error('Error invoking create-user:', err);
+        toast({ 
+          title: 'Warning', 
+          description: 'Staff added but login account creation failed',
+          variant: 'destructive' 
+        });
+      }
+    } else {
+      toast({ title: 'Success', description: 'Staff member added successfully' });
+    }
+    
     setStaff(prev => [typedData, ...prev]);
     return data;
   };

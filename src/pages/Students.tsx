@@ -194,6 +194,7 @@ export default function Students() {
                   onSubmit={handleAdd}
                   onCancel={handleCancel}
                   submitLabel="Enroll Student"
+                  showPasswordField={true}
                 />
               </DialogContent>
             </Dialog>
@@ -336,6 +337,7 @@ export default function Students() {
               onSubmit={handleUpdate}
               onCancel={handleCancel}
               submitLabel="Save Changes"
+              showPasswordField={false}
             />
           </DialogContent>
         </Dialog>

@@ -177,6 +177,7 @@ export default function StaffPage() {
                     onSubmit={handleAdd}
                     onCancel={handleCancel}
                     submitLabel="Add Staff"
+                    showPasswordField={true}
                   />
                 </DialogContent>
               </Dialog>
@@ -311,6 +312,7 @@ export default function StaffPage() {
               onSubmit={handleUpdate}
               onCancel={handleCancel}
               submitLabel="Save Changes"
+              showPasswordField={false}
             />
           </DialogContent>
         </Dialog>
