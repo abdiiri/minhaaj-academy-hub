@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ParentDashboard from "./pages/ParentDashboard";
 import Students from "./pages/Students";
 import StaffPage from "./pages/Staff";
 import Classes from "./pages/Classes";
@@ -25,6 +26,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/parent" element={<ParentDashboard />} />
             <Route path="/students" element={<Students />} />
             <Route path="/staff" element={<StaffPage />} />
             <Route path="/classes" element={<Classes />} />

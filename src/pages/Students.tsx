@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useStudents, StudentInsert, StudentRecord } from '@/hooks/useStudents';
 import { useClasses } from '@/hooks/useClasses';
+import { useAuth } from '@/contexts/AuthContext';
 import { StudentForm } from '@/components/forms/StudentForm';
 import { 
   Search, 
@@ -47,10 +48,15 @@ import {
   Trash2,
   GraduationCap,
   Filter,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function Students() {
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
+  const canAddStudent = isAdmin || isStaff;
   const { students, loading, addStudent, updateStudent, deleteStudent } = useStudents();
   const { classes } = useClasses();
   const [searchTerm, setSearchTerm] = useState('');
@@ -173,31 +179,38 @@ export default function Students() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gradient-primary" onClick={resetForm}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Student
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Add New Student</DialogTitle>
-                  <DialogDescription>
-                    Enter the student's details to enroll them in the system.
-                  </DialogDescription>
-                </DialogHeader>
-                <StudentForm 
-                  formData={formData}
-                  setFormData={setFormData}
-                  classes={classes}
-                  onSubmit={handleAdd}
-                  onCancel={handleCancel}
-                  submitLabel="Enroll Student"
-                  showPasswordField={true}
-                />
-              </DialogContent>
-            </Dialog>
+            {canAddStudent ? (
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gradient-primary" onClick={resetForm}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Student
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add New Student</DialogTitle>
+                    <DialogDescription>
+                      Enter the student's details to enroll them in the system.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <StudentForm 
+                    formData={formData}
+                    setFormData={setFormData}
+                    classes={classes}
+                    onSubmit={handleAdd}
+                    onCancel={handleCancel}
+                    submitLabel="Enroll Student"
+                    showPasswordField={true}
+                  />
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <ShieldAlert className="h-4 w-4" />
+                <span>View only</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -244,10 +257,12 @@ export default function Students() {
                 <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No students yet</h3>
                 <p className="text-muted-foreground mb-4">Enroll your first student to get started.</p>
-                <Button onClick={() => { resetForm(); setIsAddDialogOpen(true); }} className="gradient-primary">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Student
-                </Button>
+                {canAddStudent && (
+                  <Button onClick={() => { resetForm(); setIsAddDialogOpen(true); }} className="gradient-primary">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Student
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -299,17 +314,21 @@ export default function Students() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(student)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-destructive"
-                              onClick={() => setDeleteId(student.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canAddStudent && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(student)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {isAdmin && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-destructive"
+                                onClick={() => setDeleteId(student.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

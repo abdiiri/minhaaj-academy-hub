@@ -26,12 +26,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo.png';
 
 const menuItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'Students', url: '/students', icon: GraduationCap },
-  { title: 'Staff', url: '/staff', icon: Users },
-  { title: 'Classes', url: '/classes', icon: BookOpen },
-  { title: 'Payments', url: '/payments', icon: CreditCard },
-  { title: 'Settings', url: '/settings', icon: Settings },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'staff'] },
+  { title: 'My Dashboard', url: '/parent', icon: LayoutDashboard, roles: ['parent'] },
+  { title: 'Students', url: '/students', icon: GraduationCap, roles: ['admin', 'staff'] },
+  { title: 'Staff', url: '/staff', icon: Users, roles: ['admin', 'staff'] },
+  { title: 'Classes', url: '/classes', icon: BookOpen, roles: ['admin', 'staff'] },
+  { title: 'Payments', url: '/payments', icon: CreditCard, roles: ['admin', 'staff'] },
+  { title: 'Settings', url: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
 export function AppSidebar() {
@@ -43,13 +44,8 @@ export function AppSidebar() {
 
   // Filter menu items based on role
   const filteredMenuItems = menuItems.filter(item => {
-    if (role === 'parent') {
-      return ['Dashboard', 'Payments'].includes(item.title);
-    }
-    if (role === 'staff') {
-      return ['Dashboard', 'Students', 'Classes'].includes(item.title);
-    }
-    return true; // Admin sees all
+    if (!role) return false;
+    return item.roles.includes(role);
   });
 
   return (
