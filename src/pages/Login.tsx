@@ -18,16 +18,21 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   
-  const { login, signup, isAuthenticated } = useAuth();
+  const { login, signup, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      // Redirect parents to their dashboard
+      if (role === 'parent') {
+        navigate('/parent');
+      } else {
+        navigate('/dashboard');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, role, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +53,7 @@ export default function Login() {
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
         });
-        navigate('/dashboard');
+        // Navigation will happen via useEffect when role is set
       }
     } catch (error: any) {
       let message = 'An error occurred. Please try again.';

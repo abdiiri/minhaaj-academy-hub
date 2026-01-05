@@ -182,10 +182,10 @@ export default function Payments() {
   };
 
   const handleConfirm = async (paymentId: string) => {
-    if (!isAdmin) {
+    if (!canManagePayments) {
       toast({
         title: 'Access Denied',
-        description: 'Only admins can confirm payments.',
+        description: 'Only staff and admins can confirm payments.',
         variant: 'destructive',
       });
       return;
@@ -386,27 +386,15 @@ export default function Payments() {
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedPayment(payment)}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {/* Staff can mark as received */}
-                                {isStaff && payment.status === 'pending' && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8 text-primary" 
-                                    onClick={() => handleMarkReceived(payment.id)}
-                                    title="Mark as Received"
-                                  >
-                                    <ThumbsUp className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {/* Only Admin can confirm/approve */}
-                                {isAdmin && (payment.status === 'pending' || payment.status === 'received') && (
+                                {/* Staff and Admin can confirm payments */}
+                                {canManagePayments && (payment.status === 'pending' || payment.status === 'received') && (
                                   <>
                                     <Button 
                                       variant="ghost" 
                                       size="icon" 
                                       className="h-8 w-8 text-success" 
                                       onClick={() => handleConfirm(payment.id)}
-                                      title="Approve Payment"
+                                      title="Confirm Payment"
                                     >
                                       <ShieldCheck className="h-4 w-4" />
                                     </Button>
