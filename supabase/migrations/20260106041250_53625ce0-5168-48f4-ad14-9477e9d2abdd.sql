@@ -1,0 +1,2 @@
+-- Add unique constraint for attendance upsert to work
+ALTER TABLE public.attendance ADD CONSTRAINT attendance_student_date_unique UNIQUE (student_id, date);
