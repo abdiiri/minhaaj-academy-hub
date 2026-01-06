@@ -12,7 +12,8 @@ import { useClasses } from '@/hooks/useClasses';
 import { useStudents } from '@/hooks/useStudents';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { CalendarIcon, Check, X, Clock, FileText } from 'lucide-react';
+import { CalendarIcon, Check, X, Clock, FileText, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -146,9 +147,17 @@ export default function Attendance() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Attendance</h1>
-          <p className="text-muted-foreground">Mark and manage student attendance</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Attendance</h1>
+            <p className="text-muted-foreground">Mark and manage student attendance</p>
+          </div>
+          <Button asChild variant="outline">
+            <Link to="/attendance/reports">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              View Reports
+            </Link>
+          </Button>
         </div>
 
         {/* Filters */}
