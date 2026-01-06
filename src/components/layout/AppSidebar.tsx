@@ -6,7 +6,8 @@ import {
   CreditCard, 
   Settings,
   LogOut,
-  Menu
+  Menu,
+  ClipboardCheck
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -31,6 +32,7 @@ const menuItems = [
   { title: 'Students', url: '/students', icon: GraduationCap, roles: ['admin', 'staff'] },
   { title: 'Staff', url: '/staff', icon: Users, roles: ['admin', 'staff'] },
   { title: 'Classes', url: '/classes', icon: BookOpen, roles: ['admin', 'staff'] },
+  { title: 'Attendance', url: '/attendance', icon: ClipboardCheck, roles: ['admin', 'staff'] },
   { title: 'Payments', url: '/payments', icon: CreditCard, roles: ['admin', 'staff'] },
   { title: 'Settings', url: '/settings', icon: Settings, roles: ['admin'] },
 ];
