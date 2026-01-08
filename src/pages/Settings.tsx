@@ -161,30 +161,30 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="school" className="space-y-4">
-          <TabsList className="grid grid-cols-2 lg:grid-cols-6 w-full">
-            <TabsTrigger value="school">
+          <TabsList className="flex flex-wrap h-auto gap-1 p-1 bg-muted">
+            <TabsTrigger value="school" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
               <School className="h-4 w-4 mr-2" />
               School
             </TabsTrigger>
-            <TabsTrigger value="academic">
+            <TabsTrigger value="academic" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
               <Calendar className="h-4 w-4 mr-2" />
               Academic
             </TabsTrigger>
             {isAdmin && (
-              <TabsTrigger value="fee-structure">
+              <TabsTrigger value="fee-structure" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
                 <DollarSign className="h-4 w-4 mr-2" />
                 Fee Structure
               </TabsTrigger>
             )}
-            <TabsTrigger value="fees">
+            <TabsTrigger value="fees" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
               <CreditCard className="h-4 w-4 mr-2" />
               Payment
             </TabsTrigger>
-            <TabsTrigger value="users">
+            <TabsTrigger value="users" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
               <Users className="h-4 w-4 mr-2" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="backup">
+            <TabsTrigger value="backup" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
               <Download className="h-4 w-4 mr-2" />
               Backup
             </TabsTrigger>
