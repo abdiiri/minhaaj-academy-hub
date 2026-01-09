@@ -29,10 +29,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="h-screen flex w-full bg-background overflow-hidden">
         <AppSidebar />
-        <main className="flex-1 flex flex-col min-h-screen">
-          <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-4 sticky top-0 z-10">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+          <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-4 shrink-0">
             <SidebarTrigger>
               <Button variant="ghost" size="icon" className="shrink-0">
                 <Menu className="h-5 w-5" />
@@ -43,7 +43,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               Academic Year: <span className="font-medium text-foreground">2025 / 2026</span>
             </div>
           </header>
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-6 overflow-y-auto">
             {children}
           </div>
         </main>
