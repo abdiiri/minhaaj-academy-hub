@@ -29,10 +29,9 @@ export function StaffForm({ formData, setFormData, onSubmit, onCancel, submitLab
             placeholder="EMP-001" 
             value={formData.employee_id}
             onChange={e => setFormData(prev => ({ ...prev, employee_id: e.target.value }))}
-            readOnly={!!formData.employee_id && formData.employee_id.startsWith('EMP-')}
-            className={formData.employee_id.startsWith('EMP-') ? 'bg-muted' : ''}
+            required
           />
-          <p className="text-xs text-muted-foreground">Auto-generated unique ID</p>
+          <p className="text-xs text-muted-foreground">Enter a unique staff ID</p>
         </div>
         <div className="space-y-2">
           <Label>Status</Label>
