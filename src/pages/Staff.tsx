@@ -48,9 +48,17 @@ export default function StaffPage() {
   
   const isAdmin = role === 'admin';
   
+  // Generate a unique employee ID
+  const generateEmployeeId = () => {
+    const prefix = 'EMP';
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return `${prefix}-${timestamp}-${random}`;
+  };
+
   // Form state
   const [formData, setFormData] = useState<StaffInsert>({
-    employee_id: '',
+    employee_id: generateEmployeeId(),
     first_name: '',
     last_name: '',
     email: '',
@@ -70,7 +78,7 @@ export default function StaffPage() {
 
   const resetForm = () => {
     setFormData({
-      employee_id: '',
+      employee_id: generateEmployeeId(),
       first_name: '',
       last_name: '',
       email: '',
