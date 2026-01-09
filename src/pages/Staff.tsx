@@ -157,9 +157,12 @@ export default function StaffPage() {
           </div>
           <div className="flex gap-2">
             {isAdmin ? (
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+                setIsAddDialogOpen(open);
+                if (open) resetForm();
+              }}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="gradient-primary" onClick={resetForm}>
+                  <Button size="sm" className="gradient-primary">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Staff
                   </Button>
