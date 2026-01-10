@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          priority: string
+          target_audience: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          priority?: string
+          target_audience?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          priority?: string
+          target_audience?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           class_id: string | null
@@ -183,6 +219,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      results: {
+        Row: {
+          class_id: string
+          created_at: string
+          entered_by: string | null
+          exam_date: string
+          exam_type: string
+          grade: string | null
+          id: string
+          max_score: number
+          remarks: string | null
+          score: number
+          student_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          entered_by?: string | null
+          exam_date?: string
+          exam_type: string
+          grade?: string | null
+          id?: string
+          max_score?: number
+          remarks?: string | null
+          score: number
+          student_id: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          entered_by?: string | null
+          exam_date?: string
+          exam_type?: string
+          grade?: string | null
+          id?: string
+          max_score?: number
+          remarks?: string | null
+          score?: number
+          student_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff: {
         Row: {
