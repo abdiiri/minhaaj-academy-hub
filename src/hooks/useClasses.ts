@@ -82,7 +82,7 @@ export function useClasses() {
         *,
         staff:teacher_id (first_name, last_name)
       `)
-      .single();
+      .maybeSingle();
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
