@@ -7,7 +7,9 @@ import {
   Settings,
   LogOut,
   Menu,
-  ClipboardCheck
+  ClipboardCheck,
+  Megaphone,
+  FileText
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -29,9 +31,11 @@ import logo from '@/assets/logo.png';
 const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'staff'] },
   { title: 'My Dashboard', url: '/parent', icon: LayoutDashboard, roles: ['parent'] },
+  { title: 'Announcements', url: '/announcements', icon: Megaphone, roles: ['admin', 'staff', 'parent'] },
   { title: 'Students', url: '/students', icon: GraduationCap, roles: ['admin', 'staff'] },
   { title: 'Staff', url: '/staff', icon: Users, roles: ['admin', 'staff'] },
   { title: 'Classes', url: '/classes', icon: BookOpen, roles: ['admin', 'staff'] },
+  { title: 'Results', url: '/results', icon: FileText, roles: ['admin', 'staff'] },
   { title: 'Attendance', url: '/attendance', icon: ClipboardCheck, roles: ['admin', 'staff'] },
   { title: 'Payments', url: '/payments', icon: CreditCard, roles: ['admin', 'staff'] },
   { title: 'Settings', url: '/settings', icon: Settings, roles: ['admin'] },
