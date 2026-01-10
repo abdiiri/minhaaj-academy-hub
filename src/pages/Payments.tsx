@@ -65,8 +65,16 @@ import {
   Plus,
   Loader2,
   ThumbsUp,
-  ShieldCheck
+  ShieldCheck,
+  MoreHorizontal,
+  History
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 
 const paymentInstructions = {
@@ -115,6 +123,8 @@ export default function Payments() {
     notes: '',
   });
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<string | null>(null);
+  const [paymentHistoryStudent, setPaymentHistoryStudent] = useState<string | null>(null);
 
   const isAdmin = role === 'admin';
   const isStaff = role === 'staff';
@@ -226,8 +236,25 @@ export default function Payments() {
         notes: '',
       });
       setProofFile(null);
+      setSelectedStudentForPayment(null);
     }
   };
+
+  const openAddPaymentForStudent = (studentId: string) => {
+    setFormData(prev => ({ ...prev, student_id: studentId }));
+    setIsAddDialogOpen(true);
+  };
+
+  const getStudentPaymentHistory = (studentId: string) => {
+    return payments.filter(p => p.student_id === studentId);
+  };
+
+  const paymentHistoryStudentData = paymentHistoryStudent 
+    ? students.find(s => s.id === paymentHistoryStudent) 
+    : null;
+  const paymentHistoryPayments = paymentHistoryStudent 
+    ? getStudentPaymentHistory(paymentHistoryStudent) 
+    : [];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -438,6 +465,7 @@ export default function Payments() {
                         <TableHead className="text-right">Amount Paid</TableHead>
                         <TableHead className="text-right">Balance</TableHead>
                         <TableHead>Status</TableHead>
+                        {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -469,6 +497,27 @@ export default function Payments() {
                                 <Badge className="bg-destructive/10 text-destructive border-destructive/20">Unpaid</Badge>
                               )}
                             </TableCell>
+                            {isAdmin && (
+                              <TableCell className="text-right">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => openAddPaymentForStudent(student.id)}>
+                                      <Plus className="h-4 w-4 mr-2" />
+                                      Add Payment
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setPaymentHistoryStudent(student.id)}>
+                                      <History className="h-4 w-4 mr-2" />
+                                      Payment History
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            )}
                           </TableRow>
                         );
                       })}
@@ -707,6 +756,99 @@ export default function Payments() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Payment History Dialog */}
+        <Dialog open={!!paymentHistoryStudent} onOpenChange={() => setPaymentHistoryStudent(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Payment History
+              </DialogTitle>
+              <DialogDescription>
+                {paymentHistoryStudentData && (
+                  <>
+                    {paymentHistoryStudentData.first_name} {paymentHistoryStudentData.last_name} ({paymentHistoryStudentData.admission_number})
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="flex-1">
+              {paymentHistoryPayments.length === 0 ? (
+                <div className="py-8 text-center">
+                  <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No payments found for this student.</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Reference</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paymentHistoryPayments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>{format(new Date(payment.payment_date), 'dd MMM yyyy')}</TableCell>
+                        <TableCell className="font-medium">KES {Number(payment.amount).toLocaleString()}</TableCell>
+                        <TableCell className="capitalize">{payment.payment_method}</TableCell>
+                        <TableCell>{payment.reference_number || '-'}</TableCell>
+                        <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                              setSelectedPayment(payment);
+                              setPaymentHistoryStudent(null);
+                            }}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {(payment.status === 'pending' || payment.status === 'received') && (
+                              <>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 text-success" 
+                                  onClick={() => handleConfirm(payment.id)}
+                                  title="Confirm Payment"
+                                >
+                                  <ShieldCheck className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 text-destructive" 
+                                  onClick={() => {
+                                    setRejectId(payment.id);
+                                    setPaymentHistoryStudent(null);
+                                  }}
+                                  title="Reject Payment"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </ScrollArea>
+            <div className="flex justify-between gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => paymentHistoryStudent && openAddPaymentForStudent(paymentHistoryStudent)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Payment
+              </Button>
+              <Button variant="outline" onClick={() => setPaymentHistoryStudent(null)}>Close</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
