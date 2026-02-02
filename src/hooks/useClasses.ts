@@ -9,7 +9,8 @@ export interface ClassRecord {
   level: string;
   section: string | null;
   teacher_id: string | null;
-  subjects: string[];
+  secular_subjects: string[];
+  arabic_subjects: string[];
   academic_year: string;
   created_at: string;
   updated_at: string;
@@ -25,7 +26,8 @@ export interface ClassInsert {
   level: string;
   section?: string;
   teacher_id?: string;
-  subjects?: string[];
+  secular_subjects?: string[];
+  arabic_subjects?: string[];
   academic_year?: string;
 }
 

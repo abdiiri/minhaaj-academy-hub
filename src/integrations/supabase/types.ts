@@ -104,37 +104,40 @@ export type Database = {
       classes: {
         Row: {
           academic_year: string
+          arabic_subjects: string[] | null
           created_at: string
           curriculum: string
           id: string
           level: string
           name: string
           section: string | null
-          subjects: string[] | null
+          secular_subjects: string[] | null
           teacher_id: string | null
           updated_at: string
         }
         Insert: {
           academic_year?: string
+          arabic_subjects?: string[] | null
           created_at?: string
           curriculum: string
           id?: string
           level: string
           name: string
           section?: string | null
-          subjects?: string[] | null
+          secular_subjects?: string[] | null
           teacher_id?: string | null
           updated_at?: string
         }
         Update: {
           academic_year?: string
+          arabic_subjects?: string[] | null
           created_at?: string
           curriculum?: string
           id?: string
           level?: string
           name?: string
           section?: string | null
-          subjects?: string[] | null
+          secular_subjects?: string[] | null
           teacher_id?: string | null
           updated_at?: string
         }
