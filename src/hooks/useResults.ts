@@ -86,6 +86,39 @@ export function useResults(classId?: string) {
     },
   });
 
+  const createBulkResults = useMutation({
+    mutationFn: async (results: ResultInsert[]) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // First, delete existing results for these student/subject/exam combinations
+      for (const result of results) {
+        await supabase
+          .from('results')
+          .delete()
+          .eq('student_id', result.student_id)
+          .eq('subject', result.subject)
+          .eq('exam_type', result.exam_type)
+          .eq('exam_date', result.exam_date || new Date().toISOString().split('T')[0]);
+      }
+      
+      // Then insert new results
+      const { data, error } = await supabase
+        .from('results')
+        .insert(results.map(r => ({ ...r, entered_by: user?.id })))
+        .select();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['results'] });
+      toast({ title: 'Success', description: 'Results saved successfully' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const updateResult = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Result> & { id: string }) => {
       const { data, error } = await supabase
@@ -130,6 +163,7 @@ export function useResults(classId?: string) {
     isLoading,
     error,
     createResult,
+    createBulkResults,
     updateResult,
     deleteResult,
   };
