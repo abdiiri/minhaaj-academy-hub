@@ -57,7 +57,8 @@ export default function Classes() {
     curriculum: 'CBE',
     level: '',
     teacher_id: undefined,
-    subjects: [],
+    secular_subjects: [],
+    arabic_subjects: [],
     academic_year: '2025/2026'
   });
 
@@ -84,7 +85,8 @@ export default function Classes() {
       curriculum: 'CBE',
       level: '',
       teacher_id: undefined,
-      subjects: [],
+      secular_subjects: [],
+      arabic_subjects: [],
       academic_year: '2025/2026'
     });
   };
@@ -105,7 +107,8 @@ export default function Classes() {
       curriculum: cls.curriculum,
       level: cls.level,
       teacher_id: cls.teacher_id || undefined,
-      subjects: cls.subjects,
+      secular_subjects: cls.secular_subjects || [],
+      arabic_subjects: cls.arabic_subjects || [],
       academic_year: cls.academic_year
     });
     setIsEditDialogOpen(true);
@@ -256,16 +259,31 @@ export default function Classes() {
                       </div>
 
                       <div>
-                        <p className="text-sm text-muted-foreground mb-2">Subjects</p>
+                        <p className="text-sm text-muted-foreground mb-2">Secular Subjects</p>
                         <div className="flex flex-wrap gap-1">
-                          {cls.subjects.slice(0, 4).map(subject => (
+                          {(cls.secular_subjects || []).slice(0, 3).map(subject => (
                             <Badge key={subject} variant="outline" className="text-xs">
                               {subject}
                             </Badge>
                           ))}
-                          {cls.subjects.length > 4 && (
+                          {(cls.secular_subjects || []).length > 3 && (
                             <Badge variant="outline" className="text-xs">
-                              +{cls.subjects.length - 4}
+                              +{(cls.secular_subjects || []).length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Arabic Subjects</p>
+                        <div className="flex flex-wrap gap-1">
+                          {(cls.arabic_subjects || []).slice(0, 3).map(subject => (
+                            <Badge key={subject} variant="secondary" className="text-xs">
+                              {subject}
+                            </Badge>
+                          ))}
+                          {(cls.arabic_subjects || []).length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{(cls.arabic_subjects || []).length - 3}
                             </Badge>
                           )}
                         </div>

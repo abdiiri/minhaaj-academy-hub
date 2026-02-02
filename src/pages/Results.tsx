@@ -74,11 +74,13 @@ export default function Results() {
     return students.filter(s => s.class_id === formData.class_id);
   }, [students, formData.class_id]);
 
-  // Get subjects for selected class
+  // Get subjects for selected class (combine secular and arabic subjects)
   const classSubjects = useMemo(() => {
     if (!formData.class_id) return [];
     const selectedClass = classes.find(c => c.id === formData.class_id);
-    return selectedClass?.subjects || [];
+    const secular = selectedClass?.secular_subjects || [];
+    const arabic = selectedClass?.arabic_subjects || [];
+    return [...secular, ...arabic];
   }, [classes, formData.class_id]);
 
   // Filter results by search term

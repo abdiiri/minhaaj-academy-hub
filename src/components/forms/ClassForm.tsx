@@ -86,16 +86,28 @@ export function ClassForm({ formData, setFormData, teachers, onSubmit, onCancel,
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Subjects (comma separated)</Label>
+          <Label>Secular Subjects (comma separated)</Label>
           <Input 
             placeholder="Mathematics, English, Science, etc." 
-            value={formData.subjects?.join(', ') || ''}
+            value={formData.secular_subjects?.join(', ') || ''}
             onChange={e => setFormData(prev => ({ 
               ...prev, 
-              subjects: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+              secular_subjects: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
             }))}
           />
-          <p className="text-xs text-muted-foreground">Enter multiple subjects separated by commas</p>
+          <p className="text-xs text-muted-foreground">Enter secular subjects separated by commas</p>
+        </div>
+        <div className="space-y-2">
+          <Label>Arabic Subjects (comma separated)</Label>
+          <Input 
+            placeholder="Quran, Arabic Language, Islamic Studies, etc." 
+            value={formData.arabic_subjects?.join(', ') || ''}
+            onChange={e => setFormData(prev => ({ 
+              ...prev, 
+              arabic_subjects: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+            }))}
+          />
+          <p className="text-xs text-muted-foreground">Enter Arabic/Islamic subjects separated by commas</p>
         </div>
         <div className="space-y-2">
           <Label>Academic Year</Label>
