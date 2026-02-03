@@ -8,8 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { ClassInsert } from '@/hooks/useClasses';
 import { StaffMember } from '@/hooks/useStaff';
+import { GradeScaleEditor } from '@/components/grades/GradeScaleEditor';
+import { GRADE_SCALE } from '@/lib/gradeCalculator';
 
 interface ClassFormProps {
   formData: ClassInsert;
@@ -121,6 +129,22 @@ export function ClassForm({ formData, setFormData, teachers, onSubmit, onCancel,
             onChange={e => setFormData(prev => ({ ...prev, academic_year: e.target.value }))}
           />
         </div>
+
+        {/* Grade Scale Configuration */}
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="grade-scale">
+            <AccordionTrigger className="text-sm font-medium">
+              Custom Grade Scale (Optional)
+            </AccordionTrigger>
+            <AccordionContent>
+              <GradeScaleEditor
+                gradeScale={formData.grade_scale || GRADE_SCALE}
+                onChange={(scale) => setFormData(prev => ({ ...prev, grade_scale: scale }))}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
         <div className="flex justify-end gap-2 pt-4 border-t mt-4">
           <Button variant="outline" onClick={onCancel}>
             Cancel

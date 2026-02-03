@@ -139,8 +139,8 @@ export function ResultsEntryTable({
       allSubjects.forEach(subject => {
         const score = studentScores[subject];
         if (typeof score === 'number' && score >= 0) {
-          // Calculate grade automatically
-          const grade = calculateGrade(score, 100);
+          // Calculate grade automatically using class's custom grade scale if available
+          const grade = calculateGrade(score, 100, selectedClass.grade_scale || undefined);
           
           resultsToSave.push({
             student_id: student.id,

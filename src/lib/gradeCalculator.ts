@@ -20,10 +20,14 @@ export const GRADE_SCALE: GradeConfig[] = [
   { minPercentage: 0, grade: 'F', description: 'Fail' },
 ];
 
-export function calculateGrade(score: number, maxScore: number = 100): string {
+export function calculateGrade(score: number, maxScore: number = 100, customScale?: GradeConfig[]): string {
   const percentage = (score / maxScore) * 100;
+  const scale = customScale && customScale.length > 0 ? customScale : GRADE_SCALE;
   
-  for (const config of GRADE_SCALE) {
+  // Ensure scale is sorted by minPercentage descending
+  const sortedScale = [...scale].sort((a, b) => b.minPercentage - a.minPercentage);
+  
+  for (const config of sortedScale) {
     if (percentage >= config.minPercentage) {
       return config.grade;
     }
@@ -32,8 +36,9 @@ export function calculateGrade(score: number, maxScore: number = 100): string {
   return 'F';
 }
 
-export function getGradeDescription(grade: string): string {
-  const config = GRADE_SCALE.find(g => g.grade === grade);
+export function getGradeDescription(grade: string, customScale?: GradeConfig[]): string {
+  const scale = customScale && customScale.length > 0 ? customScale : GRADE_SCALE;
+  const config = scale.find(g => g.grade === grade);
   return config?.description || '';
 }
 
