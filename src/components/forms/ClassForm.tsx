@@ -89,11 +89,13 @@ export function ClassForm({ formData, setFormData, teachers, onSubmit, onCancel,
           <Label>Secular Subjects (comma separated)</Label>
           <Input 
             placeholder="Mathematics, English, Science, etc." 
-            value={formData.secular_subjects?.join(', ') || ''}
-            onChange={e => setFormData(prev => ({ 
-              ...prev, 
-              secular_subjects: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-            }))}
+            value={Array.isArray(formData.secular_subjects) ? formData.secular_subjects.join(', ') : ''}
+            onChange={e => {
+              const value = e.target.value;
+              // Only split and filter when there's actual content
+              const subjects = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
+              setFormData(prev => ({ ...prev, secular_subjects: subjects }));
+            }}
           />
           <p className="text-xs text-muted-foreground">Enter secular subjects separated by commas</p>
         </div>
@@ -101,11 +103,13 @@ export function ClassForm({ formData, setFormData, teachers, onSubmit, onCancel,
           <Label>Arabic Subjects (comma separated)</Label>
           <Input 
             placeholder="Quran, Arabic Language, Islamic Studies, etc." 
-            value={formData.arabic_subjects?.join(', ') || ''}
-            onChange={e => setFormData(prev => ({ 
-              ...prev, 
-              arabic_subjects: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-            }))}
+            value={Array.isArray(formData.arabic_subjects) ? formData.arabic_subjects.join(', ') : ''}
+            onChange={e => {
+              const value = e.target.value;
+              // Only split and filter when there's actual content
+              const subjects = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
+              setFormData(prev => ({ ...prev, arabic_subjects: subjects }));
+            }}
           />
           <p className="text-xs text-muted-foreground">Enter Arabic/Islamic subjects separated by commas</p>
         </div>

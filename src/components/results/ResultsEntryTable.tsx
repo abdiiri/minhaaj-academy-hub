@@ -8,12 +8,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from '@/components/ui/table';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, FileSpreadsheet, FileText } from 'lucide-react';
 import { StudentRecord } from '@/hooks/useStudents';
 import { ClassRecord } from '@/hooks/useClasses';
 import { Result, ResultInsert } from '@/hooks/useResults';
 import { toast } from '@/hooks/use-toast';
+import { exportResultsToExcel, exportResultsToPDF } from '@/lib/resultsExport';
+import { calculateGrade } from '@/lib/gradeCalculator';
 
 interface ResultsEntryTableProps {
   selectedClass: ClassRecord;
@@ -88,9 +91,45 @@ export function ResultsEntryTable({
     }, 0);
   };
 
+  const calculateStudentAverage = (studentId: string): string => {
+    const studentScores = scores[studentId] || {};
+    const validScores = Object.values(studentScores).filter((s): s is number => typeof s === 'number');
+    if (validScores.length === 0) return '-';
+    const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+    return avg.toFixed(1);
+  };
+
   const calculateMaxTotal = (): number => {
     return allSubjects.length * 100;
   };
+
+  // Calculate class averages per subject
+  const subjectAverages = useMemo(() => {
+    const averages: Record<string, number> = {};
+    
+    allSubjects.forEach(subject => {
+      const subjectScores = classStudents
+        .map(student => scores[student.id]?.[subject])
+        .filter((s): s is number => typeof s === 'number');
+      
+      if (subjectScores.length > 0) {
+        averages[subject] = subjectScores.reduce((a, b) => a + b, 0) / subjectScores.length;
+      }
+    });
+    
+    return averages;
+  }, [scores, classStudents, allSubjects]);
+
+  // Calculate overall class average
+  const overallClassAverage = useMemo(() => {
+    const allScores = classStudents.flatMap(student => {
+      const studentScores = scores[student.id] || {};
+      return Object.values(studentScores).filter((s): s is number => typeof s === 'number');
+    });
+    
+    if (allScores.length === 0) return '-';
+    return (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1);
+  }, [scores, classStudents]);
 
   const handleSave = async () => {
     const resultsToSave: ResultInsert[] = [];
@@ -100,6 +139,9 @@ export function ResultsEntryTable({
       allSubjects.forEach(subject => {
         const score = studentScores[subject];
         if (typeof score === 'number' && score >= 0) {
+          // Calculate grade automatically
+          const grade = calculateGrade(score, 100);
+          
           resultsToSave.push({
             student_id: student.id,
             class_id: selectedClass.id,
@@ -107,6 +149,7 @@ export function ResultsEntryTable({
             exam_type: examType as 'quiz' | 'midterm' | 'final' | 'assignment' | 'project',
             score,
             max_score: 100,
+            grade,
             exam_date: examDate,
           });
         }
@@ -119,6 +162,32 @@ export function ResultsEntryTable({
     }
 
     await onSaveResults(resultsToSave);
+  };
+
+  const handleExportExcel = () => {
+    exportResultsToExcel({
+      students: classStudents,
+      subjects: allSubjects,
+      scores,
+      averages: subjectAverages,
+      className: selectedClass.name,
+      examType,
+      examDate,
+    });
+    toast({ title: 'Success', description: 'Results exported to Excel' });
+  };
+
+  const handleExportPDF = () => {
+    exportResultsToPDF({
+      students: classStudents,
+      subjects: allSubjects,
+      scores,
+      averages: subjectAverages,
+      className: selectedClass.name,
+      examType,
+      examDate,
+    });
+    toast({ title: 'Success', description: 'Results exported to PDF' });
   };
 
   if (classStudents.length === 0) {
@@ -139,11 +208,25 @@ export function ResultsEntryTable({
 
   return (
     <div className="space-y-4">
+      {/* Export Buttons */}
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" size="sm" onClick={handleExportExcel}>
+          <FileSpreadsheet className="mr-2 h-4 w-4" />
+          Export Excel
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleExportPDF}>
+          <FileText className="mr-2 h-4 w-4" />
+          Export PDF
+        </Button>
+      </div>
+
       <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="min-w-[200px] w-[250px] font-semibold">Student Name</TableHead>
+              <TableHead className="min-w-[200px] w-[250px] font-semibold sticky left-0 bg-muted/50">
+                Student Name
+              </TableHead>
               {allSubjects.map(subject => (
                 <TableHead key={subject} className="min-w-[100px] text-center font-semibold">
                   {subject}
@@ -152,12 +235,15 @@ export function ResultsEntryTable({
               <TableHead className="min-w-[100px] text-center font-semibold bg-primary/10">
                 Total ({calculateMaxTotal()})
               </TableHead>
+              <TableHead className="min-w-[80px] text-center font-semibold bg-primary/10">
+                Average
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {classStudents.map((student, idx) => (
               <TableRow key={student.id} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
-                <TableCell className="font-medium min-w-[200px]">
+                <TableCell className="font-medium min-w-[200px] sticky left-0 bg-inherit">
                   <div>
                     <p className="font-semibold">{student.first_name} {student.last_name}</p>
                     <p className="text-xs text-muted-foreground">{student.admission_number}</p>
@@ -179,9 +265,30 @@ export function ResultsEntryTable({
                 <TableCell className="text-center font-bold bg-primary/5">
                   {calculateTotal(student.id)} / {calculateMaxTotal()}
                 </TableCell>
+                <TableCell className="text-center font-bold bg-primary/5">
+                  {calculateStudentAverage(student.id)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
+          <TableFooter>
+            <TableRow className="bg-muted font-bold">
+              <TableCell className="sticky left-0 bg-muted">
+                Class Average
+              </TableCell>
+              {allSubjects.map(subject => (
+                <TableCell key={subject} className="text-center">
+                  {subjectAverages[subject]?.toFixed(1) || '-'}
+                </TableCell>
+              ))}
+              <TableCell className="text-center bg-primary/10">
+                -
+              </TableCell>
+              <TableCell className="text-center bg-primary/10">
+                {overallClassAverage}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
       
