@@ -49,7 +49,9 @@ export function useClasses() {
     if (error) {
       toast({ title: 'Error', description: 'Failed to fetch classes', variant: 'destructive' });
     } else {
-      setClasses((data || []) as ClassRecord[]);
+      // Filter out null entries that can occur from join queries and cast properly
+      const validClasses = (data || []).filter(item => item !== null) as ClassRecord[];
+      setClasses(validClasses);
     }
     setLoading(false);
   };
