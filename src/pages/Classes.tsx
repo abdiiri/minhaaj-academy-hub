@@ -59,7 +59,8 @@ export default function Classes() {
     teacher_id: undefined,
     secular_subjects: [],
     arabic_subjects: [],
-    academic_year: '2025/2026'
+    academic_year: '2025/2026',
+    grade_scale: undefined
   });
 
   const teachers = staff.filter(s => s.role === 'teacher');
@@ -88,7 +89,8 @@ export default function Classes() {
       teacher_id: undefined,
       secular_subjects: [],
       arabic_subjects: [],
-      academic_year: '2025/2026'
+      academic_year: '2025/2026',
+      grade_scale: undefined
     });
   };
 
@@ -110,7 +112,8 @@ export default function Classes() {
       teacher_id: cls.teacher_id || undefined,
       secular_subjects: cls.secular_subjects || [],
       arabic_subjects: cls.arabic_subjects || [],
-      academic_year: cls.academic_year
+      academic_year: cls.academic_year,
+      grade_scale: cls.grade_scale || undefined
     });
     setIsEditDialogOpen(true);
   };

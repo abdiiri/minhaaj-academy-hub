@@ -107,6 +107,7 @@ export type Database = {
           arabic_subjects: string[] | null
           created_at: string
           curriculum: string
+          grade_scale: Json | null
           id: string
           level: string
           name: string
@@ -120,6 +121,7 @@ export type Database = {
           arabic_subjects?: string[] | null
           created_at?: string
           curriculum: string
+          grade_scale?: Json | null
           id?: string
           level: string
           name: string
@@ -133,6 +135,7 @@ export type Database = {
           arabic_subjects?: string[] | null
           created_at?: string
           curriculum?: string
+          grade_scale?: Json | null
           id?: string
           level?: string
           name?: string
