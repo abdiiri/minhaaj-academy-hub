@@ -121,6 +121,7 @@ export default function Payments() {
     payment_method: 'mpesa',
     reference_number: '',
     notes: '',
+    paid_month: format(new Date(), 'yyyy-MM'),
   });
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<string | null>(null);
@@ -234,6 +235,7 @@ export default function Payments() {
         payment_method: 'mpesa',
         reference_number: '',
         notes: '',
+        paid_month: format(new Date(), 'yyyy-MM'),
       });
       setProofFile(null);
       setSelectedStudentForPayment(null);
@@ -597,12 +599,12 @@ export default function Payments() {
 
         {/* Add Payment Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="max-h-[90vh] flex flex-col">
+          <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>Submit Payment</DialogTitle>
               <DialogDescription>Submit a new payment with proof.</DialogDescription>
             </DialogHeader>
-            <ScrollArea className="flex-1 pr-4">
+            <ScrollArea className="flex-1 max-h-[60vh] pr-4">
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label>Student</Label>
@@ -620,18 +622,42 @@ export default function Payments() {
                   </Select>
                 </div>
                 
-                {/* Auto-fill fee info */}
-                {applicableFee && (
-                  <div className="p-3 bg-muted rounded-lg space-y-1">
-                    <p className="text-sm font-medium">Fee Information</p>
-                    <p className="text-xs text-muted-foreground">
-                      Class: {selectedClass?.name} • Total Fee: KES {Number(applicableFee.total_fee).toLocaleString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Balance: KES {(studentBalances[formData.student_id]?.balance || 0).toLocaleString()}
-                    </p>
+                {/* Fee Summary with Total, Paid, and Balance */}
+                {formData.student_id && (
+                  <div className="p-4 bg-muted rounded-lg space-y-2">
+                    <p className="text-sm font-medium">Fee Summary</p>
+                    {applicableFee ? (
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Total Fee</p>
+                          <p className="font-bold">KES {Number(applicableFee.total_fee).toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Paid</p>
+                          <p className="font-bold text-success">KES {(studentBalances[formData.student_id]?.totalPaid || 0).toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Balance</p>
+                          <p className="font-bold text-destructive">KES {(studentBalances[formData.student_id]?.balance || 0).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No fee structure found for this student's class.</p>
+                    )}
+                    {selectedClass && (
+                      <p className="text-xs text-muted-foreground mt-1">Class: {selectedClass.name}</p>
+                    )}
                   </div>
                 )}
+
+                <div className="space-y-2">
+                  <Label>Payment Month</Label>
+                  <Input 
+                    type="month" 
+                    value={formData.paid_month || ''} 
+                    onChange={e => setFormData(prev => ({ ...prev, paid_month: e.target.value }))}
+                  />
+                </div>
 
                 <div className="space-y-2">
                   <Label>Amount (KES)</Label>

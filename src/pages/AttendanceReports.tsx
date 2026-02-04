@@ -118,13 +118,16 @@ export default function AttendanceReports() {
     const late = data.filter(r => r.status === 'late').length;
     const excused = data.filter(r => r.status === 'excused').length;
 
+    // Late counts as attended for attendance rate calculation
+    const attended = present + late;
+
     setOverallStats({
       total_days: totalRecords,
       present,
       absent,
       late,
       excused,
-      attendance_rate: totalRecords > 0 ? Math.round((present / totalRecords) * 100) : 0,
+      attendance_rate: totalRecords > 0 ? Math.round((attended / totalRecords) * 100) : 0,
     });
 
     // Group by student for individual reports
@@ -148,6 +151,9 @@ export default function AttendanceReports() {
       const studentExcused = records.filter(r => r.status === 'excused').length;
       const total = records.length;
 
+      // Late counts as attended for attendance rate calculation
+      const studentAttended = studentPresent + studentLate;
+
       reports.push({
         student_id: studentId,
         first_name: student.first_name,
@@ -160,7 +166,7 @@ export default function AttendanceReports() {
           absent: studentAbsent,
           late: studentLate,
           excused: studentExcused,
-          attendance_rate: total > 0 ? Math.round((studentPresent / total) * 100) : 0,
+          attendance_rate: total > 0 ? Math.round((studentAttended / total) * 100) : 0,
         },
       });
     });

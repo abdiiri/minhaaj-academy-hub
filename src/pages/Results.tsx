@@ -27,7 +27,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { MoreHorizontal, Pencil, Trash2, FileText, Search, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, FileText, Search, PlusCircle, FileSpreadsheet } from 'lucide-react';
+import { exportResultsToExcel, exportResultsToPDF } from '@/lib/resultsExport';
 import { useResults, Result, ResultInsert } from '@/hooks/useResults';
 import { useClasses } from '@/hooks/useClasses';
 import { useStudents } from '@/hooks/useStudents';
@@ -191,8 +192,8 @@ export default function Results() {
 
           {/* View Tab */}
           <TabsContent value="view" className="space-y-4">
-            {/* Filters */}
-            <div className="flex items-center gap-4">
+            {/* Filters and Export */}
+            <div className="flex flex-wrap items-center gap-4">
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -215,6 +216,90 @@ export default function Results() {
                   ))}
                 </SelectContent>
               </Select>
+              {displayedResults.length > 0 && (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      const viewClass = classes.find(c => c.id === viewClassFilter);
+                      const subjects = [...new Set(displayedResults.map(r => r.subject))];
+                      const studentScores: Record<string, Record<string, number | ''>> = {};
+                      const subjectAverages: Record<string, number> = {};
+                      
+                      displayedResults.forEach(r => {
+                        if (!studentScores[r.student_id]) studentScores[r.student_id] = {};
+                        studentScores[r.student_id][r.subject] = r.score;
+                      });
+                      
+                      subjects.forEach(subject => {
+                        const scores = displayedResults.filter(r => r.subject === subject).map(r => r.score);
+                        if (scores.length) subjectAverages[subject] = scores.reduce((a, b) => a + b, 0) / scores.length;
+                      });
+                      
+                      const studentsForExport = [...new Map(displayedResults.map(r => [r.student_id, {
+                        id: r.student_id,
+                        first_name: r.students?.first_name || '',
+                        last_name: r.students?.last_name || '',
+                        admission_number: r.students?.admission_number || '',
+                      }])).values()] as any[];
+                      
+                      exportResultsToExcel({
+                        students: studentsForExport,
+                        subjects,
+                        scores: studentScores,
+                        averages: subjectAverages,
+                        className: viewClass?.name || 'All Classes',
+                        examType: 'All',
+                        examDate: new Date().toISOString().split('T')[0],
+                      });
+                    }}
+                  >
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Excel
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      const viewClass = classes.find(c => c.id === viewClassFilter);
+                      const subjects = [...new Set(displayedResults.map(r => r.subject))];
+                      const studentScores: Record<string, Record<string, number | ''>> = {};
+                      const subjectAverages: Record<string, number> = {};
+                      
+                      displayedResults.forEach(r => {
+                        if (!studentScores[r.student_id]) studentScores[r.student_id] = {};
+                        studentScores[r.student_id][r.subject] = r.score;
+                      });
+                      
+                      subjects.forEach(subject => {
+                        const scores = displayedResults.filter(r => r.subject === subject).map(r => r.score);
+                        if (scores.length) subjectAverages[subject] = scores.reduce((a, b) => a + b, 0) / scores.length;
+                      });
+                      
+                      const studentsForExport = [...new Map(displayedResults.map(r => [r.student_id, {
+                        id: r.student_id,
+                        first_name: r.students?.first_name || '',
+                        last_name: r.students?.last_name || '',
+                        admission_number: r.students?.admission_number || '',
+                      }])).values()] as any[];
+                      
+                      exportResultsToPDF({
+                        students: studentsForExport,
+                        subjects,
+                        scores: studentScores,
+                        averages: subjectAverages,
+                        className: viewClass?.name || 'All Classes',
+                        examType: 'All',
+                        examDate: new Date().toISOString().split('T')[0],
+                      });
+                    }}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    PDF
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Results Table */}
