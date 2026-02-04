@@ -36,6 +36,7 @@ export interface PaymentInsert {
   reference_number?: string;
   proof_image_url?: string;
   notes?: string;
+  paid_month?: string;
 }
 
 export function usePayments() {
