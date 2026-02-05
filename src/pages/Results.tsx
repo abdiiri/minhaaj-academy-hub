@@ -53,7 +53,7 @@ export default function Results() {
   const { classes } = useClasses();
   const { students } = useStudents();
 
-  const canManage = role === 'admin' || role === 'staff';
+  const canManage = role === 'staff';
 
   const selectedClass = useMemo(() => {
     return classes.find(c => c.id === selectedClassId);

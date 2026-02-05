@@ -54,9 +54,8 @@ import {
 
 export default function Students() {
   const { role } = useAuth();
-  const isAdmin = role === 'admin';
   const isStaff = role === 'staff';
-  const canAddStudent = isAdmin || isStaff;
+  const canAddStudent = isStaff;
   const { students, loading, addStudent, updateStudent, deleteStudent } = useStudents();
   const { classes } = useClasses();
   const [searchTerm, setSearchTerm] = useState('');
@@ -319,7 +318,7 @@ export default function Students() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             )}
-                            {isAdmin && (
+                            {isStaff && (
                               <Button 
                                 variant="ghost" 
                                 size="icon" 

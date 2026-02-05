@@ -29,11 +29,11 @@ export default function Dashboard() {
   const { feeStructures } = useFeeStructures();
 
   const loading = studentsLoading || staffLoading || classesLoading || paymentsLoading;
-  const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
 
   // Calculate fee stats for admin
   const feeStats = useMemo(() => {
-    if (!isAdmin) return null;
+    if (!isStaff) return null;
 
     let totalExpected = 0;
     let totalCollected = 0;
@@ -59,7 +59,7 @@ export default function Dashboard() {
       outstanding: totalExpected - totalCollected,
       collectionRate: totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
     };
-  }, [students, classes, feeStructures, payments, isAdmin]);
+  }, [students, classes, feeStructures, payments, isStaff]);
 
   const statCards = [
     {
@@ -122,7 +122,7 @@ export default function Dashboard() {
         </div>
 
         {/* Admin Fee Summary */}
-        {isAdmin && feeStats && (
+        {isStaff && feeStats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
               <CardContent className="p-6">

@@ -74,7 +74,7 @@ export default function Settings() {
   const { role } = useAuth();
   const { feeStructures, loading: feesLoading, addFeeStructure, updateFeeStructure, deleteFeeStructure } = useFeeStructures();
   
-  const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
 
   // Fee structure state
   const [isFeeDialogOpen, setIsFeeDialogOpen] = useState(false);
@@ -170,7 +170,7 @@ export default function Settings() {
               <Calendar className="h-4 w-4 mr-2" />
               Academic
             </TabsTrigger>
-            {isAdmin && (
+            {isStaff && (
               <TabsTrigger value="fee-structure" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
                 <DollarSign className="h-4 w-4 mr-2" />
                 Fee Structure
@@ -335,7 +335,7 @@ export default function Settings() {
           </TabsContent>
 
           {/* Fee Structure (Admin Only) */}
-          {isAdmin && (
+          {isStaff && (
             <TabsContent value="fee-structure">
               <Card>
                 <CardHeader>

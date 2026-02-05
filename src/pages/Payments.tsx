@@ -127,9 +127,8 @@ export default function Payments() {
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<string | null>(null);
   const [paymentHistoryStudent, setPaymentHistoryStudent] = useState<string | null>(null);
 
-  const isAdmin = role === 'admin';
   const isStaff = role === 'staff';
-  const canManagePayments = isAdmin || isStaff;
+  const canManagePayments = isStaff;
 
   // Get fee for selected student
   const selectedStudent = students.find(s => s.id === formData.student_id);
@@ -467,7 +466,7 @@ export default function Payments() {
                         <TableHead className="text-right">Amount Paid</TableHead>
                         <TableHead className="text-right">Balance</TableHead>
                         <TableHead>Status</TableHead>
-                        {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                        {isStaff && <TableHead className="text-right">Actions</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -499,7 +498,7 @@ export default function Payments() {
                                 <Badge className="bg-destructive/10 text-destructive border-destructive/20">Unpaid</Badge>
                               )}
                             </TableCell>
-                            {isAdmin && (
+                            {isStaff && (
                               <TableCell className="text-right">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>

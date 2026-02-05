@@ -81,14 +81,12 @@ export default function Login() {
   };
 
   const roleIcons = {
-    admin: Shield,
     staff: GraduationCap,
     parent: Users,
   };
 
   const roleDescriptions = {
-    admin: 'Full access to manage students, staff, and settings',
-    staff: 'View classes, enter results, manage students',
+    staff: 'Full access to manage students, staff, and settings',
     parent: 'View student profile, fees, and payment options',
   };
 
@@ -147,9 +145,9 @@ export default function Login() {
             </CardHeader>
             <CardContent className="pt-4">
               {!isSignUp && (
-                <Tabs defaultValue="admin" className="mb-6">
-                  <TabsList className="grid grid-cols-3 w-full">
-                    {(['admin', 'staff', 'parent'] as const).map((role) => {
+                <Tabs defaultValue="staff" className="mb-6">
+                  <TabsList className="grid grid-cols-2 w-full">
+                    {(['staff', 'parent'] as const).map((role) => {
                       const Icon = roleIcons[role];
                       return (
                         <TabsTrigger key={role} value={role} className="flex items-center gap-2 capitalize">
@@ -159,7 +157,7 @@ export default function Login() {
                       );
                     })}
                   </TabsList>
-                  {(['admin', 'staff', 'parent'] as const).map((role) => (
+                  {(['staff', 'parent'] as const).map((role) => (
                     <TabsContent key={role} value={role} className="mt-4">
                       <p className="text-sm text-muted-foreground text-center">
                         {roleDescriptions[role]}
@@ -263,7 +261,7 @@ export default function Login() {
                 <div className="mt-4 p-4 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground text-center mb-2">
                     Note: New users are assigned the "Parent" role by default.
-                    Contact an admin to change your role.
+                    Contact staff to change your role.
                   </p>
                 </div>
               )}

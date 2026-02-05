@@ -1,6 +1,6 @@
 // User and Role Types
 // Role type matching database enum
-export type UserRole = 'admin' | 'staff' | 'parent';
+export type UserRole = 'staff' | 'parent';
 
 // Database profile type
 export interface Profile {

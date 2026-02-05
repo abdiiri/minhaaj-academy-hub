@@ -51,13 +51,13 @@ serve(async (req) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', callingUser.id)
-      .eq('role', 'admin')
+      .eq('role', 'staff')
       .maybeSingle();
 
     if (roleError || !roleData) {
-      console.error('User is not an admin:', roleError);
+      console.error('User is not staff:', roleError);
       return new Response(
-        JSON.stringify({ error: 'Only admins can create users' }),
+        JSON.stringify({ error: 'Only staff can create users' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -75,7 +75,7 @@ serve(async (req) => {
     }
 
     // Validate role
-    const validRoles = ['admin', 'staff', 'parent', 'student'];
+    const validRoles = ['staff', 'parent', 'student'];
     if (!validRoles.includes(role)) {
       return new Response(
         JSON.stringify({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }),
