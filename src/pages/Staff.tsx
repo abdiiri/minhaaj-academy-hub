@@ -46,7 +46,7 @@ export default function StaffPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   
-  const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
   
   // Form state
   const [formData, setFormData] = useState<StaffInsert>({
@@ -156,7 +156,7 @@ export default function StaffPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            {isAdmin ? (
+            {isStaff ? (
               <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
                 setIsAddDialogOpen(open);
                 if (open) resetForm();
@@ -187,7 +187,7 @@ export default function StaffPage() {
             ) : (
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <ShieldAlert className="h-4 w-4" />
-                <span>View only - Admin access required</span>
+                <span>View only - Staff access required</span>
               </div>
             )}
           </div>
@@ -215,7 +215,7 @@ export default function StaffPage() {
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No staff members yet</h3>
               <p className="text-muted-foreground mb-4">Add your first staff member to get started.</p>
-              {isAdmin && (
+              {isStaff && (
                 <Button onClick={() => { resetForm(); setIsAddDialogOpen(true); }} className="gradient-primary">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Staff
@@ -278,7 +278,7 @@ export default function StaffPage() {
                     )}
                   </div>
 
-                  {isAdmin && (
+                  {isStaff && (
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(member)}>
                         <Edit className="h-4 w-4 mr-1" />

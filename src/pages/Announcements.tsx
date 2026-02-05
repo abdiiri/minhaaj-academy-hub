@@ -45,7 +45,7 @@ export default function Announcements() {
     is_published: true,
   });
 
-  const isAdmin = role === 'admin';
+  const isStaff = role === 'staff';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,10 +115,10 @@ export default function Announcements() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Announcements</h1>
             <p className="text-muted-foreground">
-              {isAdmin ? 'Create and manage announcements' : 'View school announcements'}
+              {isStaff ? 'Create and manage announcements' : 'View school announcements'}
             </p>
           </div>
-          {isAdmin && (
+          {isStaff && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => {
@@ -235,7 +235,7 @@ export default function Announcements() {
               <Megaphone className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium text-foreground">No Announcements</h3>
               <p className="text-muted-foreground">
-                {isAdmin ? 'Create your first announcement to get started.' : 'No announcements to display.'}
+                {isStaff ? 'Create your first announcement to get started.' : 'No announcements to display.'}
               </p>
             </CardContent>
           </Card>
@@ -262,7 +262,7 @@ export default function Announcements() {
                         <span>{format(new Date(announcement.created_at), 'MMM d, yyyy h:mm a')}</span>
                       </div>
                     </div>
-                    {isAdmin && (
+                    {isStaff && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">

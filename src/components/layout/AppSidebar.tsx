@@ -29,16 +29,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo.png';
 
 const menuItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'staff'] },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, roles: ['staff'] },
   { title: 'My Dashboard', url: '/parent', icon: LayoutDashboard, roles: ['parent'] },
-  { title: 'Announcements', url: '/announcements', icon: Megaphone, roles: ['admin', 'staff', 'parent'] },
-  { title: 'Students', url: '/students', icon: GraduationCap, roles: ['admin', 'staff'] },
-  { title: 'Staff', url: '/staff', icon: Users, roles: ['admin', 'staff'] },
-  { title: 'Classes', url: '/classes', icon: BookOpen, roles: ['admin', 'staff'] },
-  { title: 'Results', url: '/results', icon: FileText, roles: ['admin', 'staff'] },
-  { title: 'Attendance', url: '/attendance', icon: ClipboardCheck, roles: ['admin', 'staff'] },
-  { title: 'Payments', url: '/payments', icon: CreditCard, roles: ['admin', 'staff'] },
-  { title: 'Settings', url: '/settings', icon: Settings, roles: ['admin'] },
+  { title: 'Announcements', url: '/announcements', icon: Megaphone, roles: ['staff', 'parent'] },
+  { title: 'Students', url: '/students', icon: GraduationCap, roles: ['staff'] },
+  { title: 'Staff', url: '/staff', icon: Users, roles: ['staff'] },
+  { title: 'Classes', url: '/classes', icon: BookOpen, roles: ['staff'] },
+  { title: 'Results', url: '/results', icon: FileText, roles: ['staff'] },
+  { title: 'Attendance', url: '/attendance', icon: ClipboardCheck, roles: ['staff'] },
+  { title: 'Payments', url: '/payments', icon: CreditCard, roles: ['staff'] },
+  { title: 'Settings', url: '/settings', icon: Settings, roles: ['staff'] },
 ];
 
 export function AppSidebar() {
