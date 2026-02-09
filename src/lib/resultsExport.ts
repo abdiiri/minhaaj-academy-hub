@@ -70,14 +70,12 @@ export function exportResultsToExcel(data: ExportData) {
   // Add metadata sheet
   const metaWs = XLSX.utils.aoa_to_sheet([
     ['Class', className],
-    ['Exam Type', examType],
-    ['Date', examDate],
     ['Generated', new Date().toLocaleDateString()],
   ]);
   XLSX.utils.book_append_sheet(wb, metaWs, 'Info');
 
   // Download
-  XLSX.writeFile(wb, `${className}_${examType}_${examDate}.xlsx`);
+  XLSX.writeFile(wb, `${className}_${examDate}.xlsx`);
 }
 
 export function exportResultsToPDF(data: ExportData) {
@@ -91,11 +89,10 @@ export function exportResultsToPDF(data: ExportData) {
 
   // Title
   doc.setFontSize(16);
-  doc.text(`${className} - ${examType} Results`, 14, 15);
+  doc.text(`${className} Results`, 14, 15);
   
   doc.setFontSize(10);
-  doc.text(`Date: ${examDate}`, 14, 22);
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 27);
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 22);
 
   // Prepare table data
   const tableHeaders = ['Student', ...subjects, 'Total', 'Avg'];
@@ -135,7 +132,7 @@ export function exportResultsToPDF(data: ExportData) {
   autoTable(doc, {
     head: [tableHeaders],
     body: tableData,
-    startY: 32,
+    startY: 27,
     styles: {
       fontSize: 8,
       cellPadding: 2,
@@ -162,5 +159,5 @@ export function exportResultsToPDF(data: ExportData) {
   });
 
   // Download
-  doc.save(`${className}_${examType}_${examDate}.pdf`);
+  doc.save(`${className}_${examDate}.pdf`);
 }
