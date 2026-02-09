@@ -16,19 +16,23 @@ import {
 } from '@/components/ui/accordion';
 import { ClassInsert } from '@/hooks/useClasses';
 import { StaffMember } from '@/hooks/useStaff';
+import { Subject } from '@/hooks/useSubjects';
 import { GradeScaleEditor } from '@/components/grades/GradeScaleEditor';
 import { GRADE_SCALE } from '@/lib/gradeCalculator';
+import { SubjectPicker } from '@/components/forms/SubjectPicker';
 
 interface ClassFormProps {
   formData: ClassInsert;
   setFormData: React.Dispatch<React.SetStateAction<ClassInsert>>;
   teachers: StaffMember[];
+  secularSubjects: Subject[];
+  arabicSubjects: Subject[];
   onSubmit: () => void;
   onCancel: () => void;
   submitLabel: string;
 }
 
-export function ClassForm({ formData, setFormData, teachers, onSubmit, onCancel, submitLabel }: ClassFormProps) {
+export function ClassForm({ formData, setFormData, teachers, secularSubjects, arabicSubjects, onSubmit, onCancel, submitLabel }: ClassFormProps) {
   return (
     <div className="max-h-[60vh] overflow-y-auto pr-2">
       <div className="grid gap-4 py-4">
@@ -93,34 +97,20 @@ export function ClassForm({ formData, setFormData, teachers, onSubmit, onCancel,
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label>Secular Subjects (comma separated)</Label>
-          <Input 
-            placeholder="Mathematics, English, Science, etc." 
-            value={Array.isArray(formData.secular_subjects) ? formData.secular_subjects.join(', ') : ''}
-            onChange={e => {
-              const value = e.target.value;
-              // Only split and filter when there's actual content
-              const subjects = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
-              setFormData(prev => ({ ...prev, secular_subjects: subjects }));
-            }}
-          />
-          <p className="text-xs text-muted-foreground">Enter secular subjects separated by commas</p>
-        </div>
-        <div className="space-y-2">
-          <Label>Arabic Subjects (comma separated)</Label>
-          <Input 
-            placeholder="Quran, Arabic Language, Islamic Studies, etc." 
-            value={Array.isArray(formData.arabic_subjects) ? formData.arabic_subjects.join(', ') : ''}
-            onChange={e => {
-              const value = e.target.value;
-              // Only split and filter when there's actual content
-              const subjects = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
-              setFormData(prev => ({ ...prev, arabic_subjects: subjects }));
-            }}
-          />
-          <p className="text-xs text-muted-foreground">Enter Arabic/Islamic subjects separated by commas</p>
-        </div>
+        <SubjectPicker
+          label="Secular Subjects"
+          availableSubjects={secularSubjects}
+          selectedSubjects={formData.secular_subjects || []}
+          onChange={subjects => setFormData(prev => ({ ...prev, secular_subjects: subjects }))}
+          variant="outline"
+        />
+        <SubjectPicker
+          label="Arabic Subjects"
+          availableSubjects={arabicSubjects}
+          selectedSubjects={formData.arabic_subjects || []}
+          onChange={subjects => setFormData(prev => ({ ...prev, arabic_subjects: subjects }))}
+          variant="secondary"
+        />
         <div className="space-y-2">
           <Label>Academic Year</Label>
           <Input 

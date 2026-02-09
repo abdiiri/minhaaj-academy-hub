@@ -31,6 +31,7 @@ import {
 import { useClasses, ClassInsert, ClassRecord } from '@/hooks/useClasses';
 import { useStaff } from '@/hooks/useStaff';
 import { useStudents } from '@/hooks/useStudents';
+import { useSubjects } from '@/hooks/useSubjects';
 import { ClassForm } from '@/components/forms/ClassForm';
 import { 
   BookOpen, 
@@ -46,6 +47,7 @@ export default function Classes() {
   const { classes, loading, addClass, updateClass, deleteClass } = useClasses();
   const { staff } = useStaff();
   const { students } = useStudents();
+  const { secularSubjects, arabicSubjects } = useSubjects();
   const [filterCurriculum, setFilterCurriculum] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -194,6 +196,8 @@ export default function Classes() {
                   formData={formData}
                   setFormData={setFormData}
                   teachers={teachers}
+                  secularSubjects={secularSubjects}
+                  arabicSubjects={arabicSubjects}
                   onSubmit={handleAdd}
                   onCancel={handleCancel}
                   submitLabel="Create Class"
@@ -328,6 +332,8 @@ export default function Classes() {
               formData={formData}
               setFormData={setFormData}
               teachers={teachers}
+              secularSubjects={secularSubjects}
+              arabicSubjects={arabicSubjects}
               onSubmit={handleUpdate}
               onCancel={handleCancel}
               submitLabel="Save Changes"

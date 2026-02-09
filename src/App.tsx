@@ -10,6 +10,7 @@ import ParentDashboard from "./pages/ParentDashboard";
 import Students from "./pages/Students";
 import StaffPage from "./pages/Staff";
 import Classes from "./pages/Classes";
+import Subjects from "./pages/Subjects";
 import Payments from "./pages/Payments";
 import Attendance from "./pages/Attendance";
 import AttendanceReports from "./pages/AttendanceReports";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/students" element={<Students />} />
             <Route path="/staff" element={<StaffPage />} />
             <Route path="/classes" element={<Classes />} />
+            <Route path="/subjects" element={<Subjects />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/attendance/reports" element={<AttendanceReports />} />
