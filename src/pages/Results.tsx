@@ -330,7 +330,6 @@ export default function Results() {
                         <TableHead>Exam Type</TableHead>
                         <TableHead>Score</TableHead>
                         <TableHead>Grade</TableHead>
-                        <TableHead>Date</TableHead>
                         {canManage && <TableHead className="w-[70px]">Actions</TableHead>}
                       </TableRow>
                     </TableHeader>
@@ -348,7 +347,7 @@ export default function Results() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {result.classes?.name} - {result.classes?.level}
+                            {result.classes?.name}
                           </TableCell>
                           <TableCell>{result.subject}</TableCell>
                           <TableCell>
@@ -364,7 +363,7 @@ export default function Results() {
                               {result.grade || '-'}
                             </Badge>
                           </TableCell>
-                          <TableCell>{format(new Date(result.exam_date), 'MMM d, yyyy')}</TableCell>
+                          
                           {canManage && (
                             <TableCell>
                               <DropdownMenu>
