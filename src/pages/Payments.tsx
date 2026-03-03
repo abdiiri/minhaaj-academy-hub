@@ -123,8 +123,10 @@ export default function Payments() {
     notes: '',
     paid_month: format(new Date(), 'yyyy-MM'),
   });
+  const [manualTotalFee, setManualTotalFee] = useState<number>(0);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<string | null>(null);
+  const [studentSearch, setStudentSearch] = useState('');
   const [paymentHistoryStudent, setPaymentHistoryStudent] = useState<string | null>(null);
 
   const isStaff = role === 'staff';
@@ -238,11 +240,22 @@ export default function Payments() {
       });
       setProofFile(null);
       setSelectedStudentForPayment(null);
+      setStudentSearch('');
+      setManualTotalFee(0);
     }
   };
 
   const openAddPaymentForStudent = (studentId: string) => {
-    setFormData(prev => ({ ...prev, student_id: studentId }));
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+      setStudentSearch(`${student.first_name} ${student.last_name} (${student.admission_number})`);
+      const sClass = classes.find(c => c.id === student.class_id);
+      const fee = sClass ? feeStructures.find(f => f.level === sClass.level && f.curriculum === sClass.curriculum) : null;
+      const totalFee = fee ? Number(fee.total_fee) : 0;
+      setManualTotalFee(totalFee);
+      const paid = payments.filter(p => p.student_id === studentId && p.status === 'confirmed').reduce((sum, p) => sum + Number(p.amount), 0);
+      setFormData(prev => ({ ...prev, student_id: studentId, amount: Math.max(0, totalFee - paid) }));
+    }
     setIsAddDialogOpen(true);
   };
 
@@ -607,38 +620,80 @@ export default function Payments() {
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label>Student</Label>
-                  <Select value={formData.student_id} onValueChange={v => {
-                    const student = students.find(s => s.id === v);
-                    const sClass = student ? classes.find(c => c.id === student.class_id) : null;
-                    const fee = sClass ? feeStructures.find(f => f.level === sClass.level && f.curriculum === sClass.curriculum) : null;
-                    const totalFee = fee ? Number(fee.total_fee) : 0;
-                    const paid = payments.filter(p => p.student_id === v && p.status === 'confirmed').reduce((sum, p) => sum + Number(p.amount), 0);
-                    const balance = Math.max(0, totalFee - paid);
-                    setFormData(prev => ({ ...prev, student_id: v, amount: balance }));
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select student" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {students.map(s => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.first_name} {s.last_name} ({s.admission_number})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search student by name or admission..."
+                      className="pl-10"
+                      value={studentSearch}
+                      onChange={e => {
+                        setStudentSearch(e.target.value);
+                        if (!e.target.value) setFormData(prev => ({ ...prev, student_id: '' }));
+                      }}
+                    />
+                    {studentSearch && !formData.student_id && (() => {
+                      const filtered = students.filter(s =>
+                        `${s.first_name} ${s.last_name} ${s.admission_number}`.toLowerCase().includes(studentSearch.toLowerCase())
+                      );
+                      return filtered.length > 0 ? (
+                        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md max-h-40 overflow-y-auto">
+                          {filtered.map(s => (
+                            <button
+                              key={s.id}
+                              type="button"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, student_id: s.id }));
+                                setStudentSearch(`${s.first_name} ${s.last_name} (${s.admission_number})`);
+                                // Auto-fill total fee from fee structure
+                                const sClass = classes.find(c => c.id === s.class_id);
+                                const fee = sClass ? feeStructures.find(f => f.level === sClass.level && f.curriculum === sClass.curriculum) : null;
+                                const totalFee = fee ? Number(fee.total_fee) : 0;
+                                setManualTotalFee(totalFee);
+                                const paid = payments.filter(p => p.student_id === s.id && p.status === 'confirmed').reduce((sum, p) => sum + Number(p.amount), 0);
+                                setFormData(prev => ({ ...prev, student_id: s.id, amount: Math.max(0, totalFee - paid) }));
+                              }}
+                            >
+                              {s.first_name} {s.last_name} ({s.admission_number})
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md p-3">
+                          <p className="text-sm text-muted-foreground">No matching students found.</p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  {formData.student_id && (
+                    <button type="button" className="text-xs text-primary hover:underline" onClick={() => {
+                      setFormData(prev => ({ ...prev, student_id: '' }));
+                      setStudentSearch('');
+                      setManualTotalFee(0);
+                    }}>Clear selection</button>
+                  )}
                 </div>
                 
                 {formData.student_id && (() => {
-                  const totalFee = applicableFee ? Number(applicableFee.total_fee) : 0;
                   const alreadyPaid = studentBalances[formData.student_id]?.totalPaid || 0;
-                  const maxPayable = Math.max(0, totalFee - alreadyPaid);
-                  const balance = Math.max(0, totalFee - alreadyPaid - (formData.amount || 0));
+                  const maxPayable = Math.max(0, manualTotalFee - alreadyPaid);
+                  const balance = Math.max(0, manualTotalFee - alreadyPaid - (formData.amount || 0));
                   return (
                     <div className="p-4 bg-muted rounded-lg space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Total Fee</span>
-                        <span className="font-bold">KES {totalFee.toLocaleString()}</span>
+                      <div className="space-y-2">
+                        <Label>Total Fee (KES)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="0" 
+                          value={manualTotalFee || ''} 
+                          onChange={e => {
+                            const val = Math.max(0, Number(e.target.value));
+                            setManualTotalFee(val);
+                            // Re-cap amount if needed
+                            const newMax = Math.max(0, val - alreadyPaid);
+                            setFormData(prev => ({ ...prev, amount: Math.min(prev.amount, newMax) }));
+                          }}
+                        />
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Previously Paid</span>
