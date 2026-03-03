@@ -629,33 +629,41 @@ export default function Payments() {
                   </Select>
                 </div>
                 
-                {/* Fee Summary with Total, Paid, and Balance */}
-                {formData.student_id && (
-                  <div className="p-4 bg-muted rounded-lg space-y-2">
-                    <p className="text-sm font-medium">Fee Summary</p>
-                    {applicableFee ? (
-                      <div className="grid grid-cols-3 gap-2 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Total Fee</p>
-                          <p className="font-bold">KES {Number(applicableFee.total_fee).toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Paid</p>
-                          <p className="font-bold text-success">KES {(studentBalances[formData.student_id]?.totalPaid || 0).toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Balance</p>
-                          <p className="font-bold text-destructive">KES {(studentBalances[formData.student_id]?.balance || 0).toLocaleString()}</p>
-                        </div>
+                {formData.student_id && (() => {
+                  const totalFee = applicableFee ? Number(applicableFee.total_fee) : 0;
+                  const alreadyPaid = studentBalances[formData.student_id]?.totalPaid || 0;
+                  const maxPayable = Math.max(0, totalFee - alreadyPaid);
+                  const balance = Math.max(0, totalFee - alreadyPaid - (formData.amount || 0));
+                  return (
+                    <div className="p-4 bg-muted rounded-lg space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Total Fee</span>
+                        <span className="font-bold">KES {totalFee.toLocaleString()}</span>
                       </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">No fee structure found for this student's class.</p>
-                    )}
-                    {selectedClass && (
-                      <p className="text-xs text-muted-foreground mt-1">Class: {selectedClass.name}</p>
-                    )}
-                  </div>
-                )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Previously Paid</span>
+                        <span className="font-bold text-success">KES {alreadyPaid.toLocaleString()}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Amount Paid (KES)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="0" 
+                          value={formData.amount || ''} 
+                          onChange={e => {
+                            const val = Math.min(Number(e.target.value), maxPayable);
+                            setFormData(prev => ({ ...prev, amount: Math.max(0, val) }));
+                          }}
+                          max={maxPayable}
+                        />
+                      </div>
+                      <div className="flex justify-between text-sm border-t pt-2">
+                        <span className="text-muted-foreground">Balance</span>
+                        <span className="font-bold text-destructive">KES {balance.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="space-y-2">
                   <Label>Payment Month</Label>
@@ -666,15 +674,6 @@ export default function Payments() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Amount (KES)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0" 
-                    value={formData.amount || ''} 
-                    onChange={e => setFormData(prev => ({ ...prev, amount: Number(e.target.value) }))}
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label>Payment Method</Label>
                   <Select value={formData.payment_method} onValueChange={v => setFormData(prev => ({ ...prev, payment_method: v }))}>
@@ -687,22 +686,6 @@ export default function Payments() {
                       <SelectItem value="cash">Cash</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Reference Number</Label>
-                  <Input 
-                    placeholder="Transaction ID" 
-                    value={formData.reference_number || ''} 
-                    onChange={e => setFormData(prev => ({ ...prev, reference_number: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Payment Proof (Image)</Label>
-                  <Input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={e => setProofFile(e.target.files?.[0] || null)}
-                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Notes</Label>
