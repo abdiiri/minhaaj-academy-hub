@@ -598,16 +598,24 @@ export default function Payments() {
 
         {/* Add Payment Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
-            <DialogHeader>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Submit Payment</DialogTitle>
               <DialogDescription>Submit a new payment with proof.</DialogDescription>
             </DialogHeader>
-            <ScrollArea className="flex-1 max-h-[60vh] pr-4">
+            <div className="flex-1 overflow-y-auto pr-2">
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label>Student</Label>
-                  <Select value={formData.student_id} onValueChange={v => setFormData(prev => ({ ...prev, student_id: v }))}>
+                  <Select value={formData.student_id} onValueChange={v => {
+                    const student = students.find(s => s.id === v);
+                    const sClass = student ? classes.find(c => c.id === student.class_id) : null;
+                    const fee = sClass ? feeStructures.find(f => f.level === sClass.level && f.curriculum === sClass.curriculum) : null;
+                    const totalFee = fee ? Number(fee.total_fee) : 0;
+                    const paid = payments.filter(p => p.student_id === v && p.status === 'confirmed').reduce((sum, p) => sum + Number(p.amount), 0);
+                    const balance = Math.max(0, totalFee - paid);
+                    setFormData(prev => ({ ...prev, student_id: v, amount: balance }));
+                  }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select student" />
                     </SelectTrigger>
@@ -704,8 +712,8 @@ export default function Payments() {
                     onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                   />
                 </div>
-              </div>
-            </ScrollArea>
+            </div>
+            </div>
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
               <Button className="gradient-primary" onClick={handleAddPayment} disabled={uploading}>
