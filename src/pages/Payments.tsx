@@ -93,7 +93,7 @@ const paymentInstructions = {
   },
   bank: {
     bankName: 'KCB Bank',
-    accountName: 'Minhaaj Academy',
+    accountName: 'Al Ishraq Academy',
     accountNumber: '1234567890',
     branch: 'Parklands Branch',
   },

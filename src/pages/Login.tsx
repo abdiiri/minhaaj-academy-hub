@@ -98,17 +98,17 @@ export default function Login() {
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12 text-center">
           <img 
             src={logo} 
-            alt="Minhaaj Academy" 
+            alt="Al Ishraq Academy" 
             className="h-32 w-auto mb-8 drop-shadow-2xl animate-fade-in"
           />
           <h1 className="text-4xl font-bold text-primary-foreground mb-4 animate-slide-up">
-            Minhaaj Academy
+            Al Ishraq Academy
           </h1>
           <p className="text-xl text-primary-foreground/90 font-amiri mb-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            Faith. Foundation. Future
+            Education is Light
           </p>
           <p className="text-primary-foreground/70 mt-8 max-w-md animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            California Group of Schools (CGOS)
+            Al Ishraq Integrated and Junior Secondary School
           </p>
           <div className="mt-12 text-primary-foreground/60 text-sm animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <p>3rd Parklands Avenue / Kusii Lane, Nairobi</p>
@@ -124,11 +124,11 @@ export default function Login() {
           <div className="lg:hidden flex flex-col items-center mb-8">
             <img 
               src={logo} 
-              alt="Minhaaj Academy" 
+             alt="Al Ishraq Academy" 
               className="h-20 w-auto mb-4"
             />
-            <h1 className="text-2xl font-bold text-foreground">Minhaaj Academy</h1>
-            <p className="text-muted-foreground font-amiri">Faith. Foundation. Future</p>
+            <h1 className="text-2xl font-bold text-foreground">Al Ishraq Academy</h1>
+            <p className="text-muted-foreground font-amiri">Education is Light</p>
           </div>
 
           <Card className="shadow-medium border-0">

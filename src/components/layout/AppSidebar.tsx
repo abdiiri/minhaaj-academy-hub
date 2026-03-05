@@ -62,16 +62,16 @@ export function AppSidebar() {
         <div className="flex items-center gap-3">
           <img 
             src={logo} 
-            alt="Minhaaj Academy" 
+            alt="Al Ishraq Academy" 
             className="h-10 w-auto"
           />
           {open && (
             <div className="flex flex-col animate-fade-in">
               <span className="font-semibold text-sidebar-foreground text-sm">
-                Minhaaj Academy
+                Al Ishraq Academy
               </span>
               <span className="text-[10px] text-sidebar-foreground/70 font-amiri">
-                Faith. Foundation. Future
+                Education is Light
               </span>
             </div>
           )}
