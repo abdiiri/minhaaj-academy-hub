@@ -67,9 +67,7 @@ export default function Classes() {
 
   const teachers = staff.filter(s => s.role === 'teacher');
 
-  const filteredClasses = classes.filter(cls => 
-    cls && (filterCurriculum === 'all' || cls.curriculum === filterCurriculum)
-  );
+  const filteredClasses = classes.filter(cls => cls);
 
   const groupedClasses = filteredClasses.reduce((acc, cls) => {
     if (!cls || !cls.level) return acc;
