@@ -296,15 +296,12 @@ export default function ParentDashboard() {
                                 <BookOpen className="h-3 w-3 mr-1" />
                                 {balance?.className}
                               </Badge>
-                              <Badge variant="outline" className="bg-primary/5">
-                                {student.curriculum}
-                              </Badge>
                             </div>
                           </div>
                         </div>
                         <div className="mt-4 pt-4 border-t space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Total Fees:</span>
+                            <span className="text-muted-foreground">Total Expected:</span>
                             <span className="font-medium">KES {balance?.totalFee.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-sm">

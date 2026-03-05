@@ -128,7 +128,7 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Expected Fees</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total Expected Money</p>
                     <p className="text-2xl font-bold text-foreground mt-2">
                       KES {feeStats.totalExpected.toLocaleString()}
                     </p>
@@ -164,7 +164,7 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Outstanding Balance</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total Expected - Collected</p>
                     <p className="text-2xl font-bold text-destructive mt-2">
                       KES {feeStats.outstanding.toLocaleString()}
                     </p>
@@ -174,24 +174,6 @@ export default function Dashboard() {
                   </div>
                   <div className="p-3 rounded-xl bg-destructive/10 text-destructive">
                     <AlertCircle className="h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Pending Approvals</p>
-                    <p className="text-2xl font-bold text-warning mt-2">
-                      {payments.filter(p => p.status === 'pending' || p.status === 'received').length}
-                    </p>
-                    <p className="text-xs mt-2 text-warning">
-                      Awaiting confirmation
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-warning/10 text-warning">
-                    <Clock className="h-6 w-6" />
                   </div>
                 </div>
               </CardContent>
@@ -302,14 +284,6 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Classes</span>
                   <span className="text-lg font-semibold">{classes.length}</span>
-                </div>
-              </div>
-              <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium mb-3">Curriculums</h4>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="bg-primary/5">CBE</Badge>
-                  <Badge variant="outline" className="bg-secondary/5">Edexcel</Badge>
-                  <Badge variant="outline" className="bg-accent/5">Islamic</Badge>
                 </div>
               </div>
             </CardContent>

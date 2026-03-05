@@ -315,14 +315,6 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-medium mb-2">Curriculums Offered</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" className="bg-primary/5">CBE (Competency Based Education)</Button>
-                    <Button variant="outline" size="sm" className="bg-secondary/5">Edexcel iProgress</Button>
-                    <Button variant="outline" size="sm" className="bg-accent/5">Islamic Studies</Button>
-                  </div>
-                </div>
 
                 <div className="flex justify-end">
                   <Button onClick={handleSave} className="gradient-primary">
@@ -374,7 +366,7 @@ export default function Settings() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Level</TableHead>
-                            <TableHead>Curriculum</TableHead>
+                            
                             <TableHead>Academic Year</TableHead>
                             <TableHead className="text-right">Tuition</TableHead>
                             <TableHead className="text-right">Activity</TableHead>
@@ -388,7 +380,7 @@ export default function Settings() {
                           {feeStructures.map((fee) => (
                             <TableRow key={fee.id}>
                               <TableCell className="font-medium">{fee.level}</TableCell>
-                              <TableCell>{fee.curriculum}</TableCell>
+                              
                               <TableCell>{fee.academic_year}</TableCell>
                               <TableCell className="text-right">KES {Number(fee.tuition_fee).toLocaleString()}</TableCell>
                               <TableCell className="text-right">KES {Number(fee.activity_fee).toLocaleString()}</TableCell>
@@ -599,19 +591,6 @@ export default function Settings() {
                     value={feeFormData.level} 
                     onChange={e => setFeeFormData(prev => ({ ...prev, level: e.target.value }))}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Curriculum</Label>
-                  <Select value={feeFormData.curriculum} onValueChange={v => setFeeFormData(prev => ({ ...prev, curriculum: v }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CBE">CBE</SelectItem>
-                      <SelectItem value="Edexcel">Edexcel</SelectItem>
-                      <SelectItem value="Islamic">Islamic</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
               <div className="space-y-2">

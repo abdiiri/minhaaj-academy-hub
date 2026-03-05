@@ -48,7 +48,7 @@ export default function Classes() {
   const { staff } = useStaff();
   const { students } = useStudents();
   const { secularSubjects, arabicSubjects } = useSubjects();
-  const [filterCurriculum, setFilterCurriculum] = useState<string>('all');
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -67,9 +67,7 @@ export default function Classes() {
 
   const teachers = staff.filter(s => s.role === 'teacher');
 
-  const filteredClasses = classes.filter(cls => 
-    cls && (filterCurriculum === 'all' || cls.curriculum === filterCurriculum)
-  );
+  const filteredClasses = classes.filter(cls => cls);
 
   const groupedClasses = filteredClasses.reduce((acc, cls) => {
     if (!cls || !cls.level) return acc;
@@ -167,17 +165,6 @@ export default function Classes() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Select value={filterCurriculum} onValueChange={setFilterCurriculum}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Curriculum" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Curriculums</SelectItem>
-                <SelectItem value="CBE">CBE</SelectItem>
-                <SelectItem value="Edexcel">Edexcel</SelectItem>
-                <SelectItem value="Islamic">Islamic</SelectItem>
-              </SelectContent>
-            </Select>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gradient-primary" onClick={resetForm}>
@@ -239,18 +226,9 @@ export default function Classes() {
                         <div>
                           <CardTitle className="text-xl">{cls.name}</CardTitle>
                           <CardDescription>
-                            {cls.curriculum} • {cls.academic_year}
+                            {cls.academic_year}
                           </CardDescription>
                         </div>
-                        <Badge className={
-                          cls.curriculum === 'CBE' 
-                            ? 'bg-primary/10 text-primary' 
-                            : cls.curriculum === 'Edexcel'
-                            ? 'bg-secondary/10 text-secondary'
-                            : 'bg-accent/10 text-accent'
-                        }>
-                          {cls.curriculum}
-                        </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">

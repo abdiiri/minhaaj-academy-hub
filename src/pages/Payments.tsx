@@ -314,12 +314,12 @@ export default function Payments() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Expected</p>
+                  <p className="text-sm text-muted-foreground">Total Expected Money</p>
                   <p className="text-2xl font-bold">KES {totalExpectedFees.toLocaleString()}</p>
                 </div>
                 <CreditCard className="h-8 w-8 text-muted-foreground" />
@@ -341,21 +341,10 @@ export default function Payments() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Outstanding</p>
+                  <p className="text-sm text-muted-foreground">Total Expected - Collected</p>
                   <p className="text-2xl font-bold text-destructive">KES {totalOutstanding.toLocaleString()}</p>
                 </div>
                 <Clock className="h-8 w-8 text-destructive" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending Approval</p>
-                  <p className="text-2xl font-bold">{pendingPayments.length + receivedPayments.length}</p>
-                </div>
-                <Clock className="h-8 w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
@@ -466,7 +455,7 @@ export default function Payments() {
             <Card>
               <CardHeader>
                 <CardTitle>Student Fee Balances</CardTitle>
-                <CardDescription>View total fees, paid amounts, and outstanding balances</CardDescription>
+                <CardDescription>View total expected money, paid amounts, and balances</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -475,7 +464,7 @@ export default function Payments() {
                       <TableRow>
                         <TableHead>Student</TableHead>
                         <TableHead>Class</TableHead>
-                        <TableHead className="text-right">Total Fees</TableHead>
+                        <TableHead className="text-right">Total Expected Money</TableHead>
                         <TableHead className="text-right">Amount Paid</TableHead>
                         <TableHead className="text-right">Balance</TableHead>
                         <TableHead>Status</TableHead>

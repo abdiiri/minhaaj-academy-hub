@@ -21,13 +21,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -47,7 +40,7 @@ import {
   Edit, 
   Trash2,
   GraduationCap,
-  Filter,
+  
   Loader2,
   ShieldAlert
 } from 'lucide-react';
@@ -59,7 +52,7 @@ export default function Students() {
   const { students, loading, addStudent, updateStudent, deleteStudent } = useStudents();
   const { classes } = useClasses();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCurriculum, setFilterCurriculum] = useState<string>('all');
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -84,8 +77,7 @@ export default function Students() {
       student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.admission_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCurriculum = filterCurriculum === 'all' || student.curriculum === filterCurriculum;
-    return matchesSearch && matchesCurriculum;
+    return matchesSearch;
   });
 
   const resetForm = () => {
@@ -226,18 +218,6 @@ export default function Students() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Select value={filterCurriculum} onValueChange={setFilterCurriculum}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by curriculum" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Curriculums</SelectItem>
-                  <SelectItem value="CBE">CBE</SelectItem>
-                  <SelectItem value="Edexcel">Edexcel</SelectItem>
-                  <SelectItem value="Islamic">Islamic</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>
@@ -271,7 +251,7 @@ export default function Students() {
                       <TableHead>Admission No.</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Class</TableHead>
-                      <TableHead>Curriculum</TableHead>
+                      
                       <TableHead>Parent</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -287,15 +267,6 @@ export default function Students() {
                           {student.first_name} {student.last_name}
                         </TableCell>
                         <TableCell>{student.classes?.name || 'Unassigned'}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={
-                            student.curriculum === 'CBE' ? 'bg-primary/5 text-primary' :
-                            student.curriculum === 'Edexcel' ? 'bg-secondary/5 text-secondary' :
-                            'bg-accent/5 text-accent'
-                          }>
-                            {student.curriculum}
-                          </Badge>
-                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="text-sm">{student.parent_name || '-'}</p>

@@ -45,22 +45,6 @@ export function ClassForm({ formData, setFormData, teachers, secularSubjects, ar
           />
         </div>
         <div className="space-y-2">
-          <Label>Curriculum</Label>
-          <Select 
-            value={formData.curriculum} 
-            onValueChange={v => setFormData(prev => ({ ...prev, curriculum: v as 'CBE' | 'Edexcel' | 'Islamic' }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select curriculum" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="CBE">CBE</SelectItem>
-              <SelectItem value="Edexcel">Edexcel</SelectItem>
-              <SelectItem value="Islamic">Islamic</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
           <Label>Level</Label>
           <Select 
             value={formData.level} 

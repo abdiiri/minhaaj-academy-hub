@@ -89,22 +89,6 @@ export function StudentForm({ formData, setFormData, classes, onSubmit, onCancel
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Curriculum</Label>
-          <Select 
-            value={formData.curriculum} 
-            onValueChange={v => setFormData(prev => ({ ...prev, curriculum: v as 'CBE' | 'Edexcel' | 'Islamic' }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select curriculum" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="CBE">CBE</SelectItem>
-              <SelectItem value="Edexcel">Edexcel</SelectItem>
-              <SelectItem value="Islamic">Islamic</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
           <Label>Class</Label>
           <Select 
             value={formData.class_id || 'none'} 
