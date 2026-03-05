@@ -124,7 +124,7 @@ export default function Login() {
           <div className="lg:hidden flex flex-col items-center mb-8">
             <img 
               src={logo} 
-              alt="Minhaaj Academy" 
+             alt="Al Ishraq Academy" 
               className="h-20 w-auto mb-4"
             />
             <h1 className="text-2xl font-bold text-foreground">Minhaaj Academy</h1>
