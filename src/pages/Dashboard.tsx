@@ -304,14 +304,6 @@ export default function Dashboard() {
                   <span className="text-lg font-semibold">{classes.length}</span>
                 </div>
               </div>
-              <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium mb-3">Curriculums</h4>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="bg-primary/5">CBE</Badge>
-                  <Badge variant="outline" className="bg-secondary/5">Edexcel</Badge>
-                  <Badge variant="outline" className="bg-accent/5">Islamic</Badge>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
