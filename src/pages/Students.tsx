@@ -40,7 +40,7 @@ import {
   Edit, 
   Trash2,
   GraduationCap,
-  Filter,
+  
   Loader2,
   ShieldAlert
 } from 'lucide-react';
