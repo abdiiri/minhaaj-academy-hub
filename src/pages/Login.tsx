@@ -102,13 +102,13 @@ export default function Login() {
             className="h-32 w-auto mb-8 drop-shadow-2xl animate-fade-in"
           />
           <h1 className="text-4xl font-bold text-primary-foreground mb-4 animate-slide-up">
-            Minhaaj Academy
+            Al Ishraq Academy
           </h1>
           <p className="text-xl text-primary-foreground/90 font-amiri mb-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            Faith. Foundation. Future
+            Education is Light
           </p>
           <p className="text-primary-foreground/70 mt-8 max-w-md animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            California Group of Schools (CGOS)
+            Al Ishraq Integrated and Junior Secondary School
           </p>
           <div className="mt-12 text-primary-foreground/60 text-sm animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <p>3rd Parklands Avenue / Kusii Lane, Nairobi</p>
