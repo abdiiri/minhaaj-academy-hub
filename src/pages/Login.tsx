@@ -98,7 +98,7 @@ export default function Login() {
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12 text-center">
           <img 
             src={logo} 
-            alt="Minhaaj Academy" 
+            alt="Al Ishraq Academy" 
             className="h-32 w-auto mb-8 drop-shadow-2xl animate-fade-in"
           />
           <h1 className="text-4xl font-bold text-primary-foreground mb-4 animate-slide-up">
