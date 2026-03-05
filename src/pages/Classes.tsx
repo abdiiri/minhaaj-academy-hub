@@ -165,17 +165,6 @@ export default function Classes() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Select value={filterCurriculum} onValueChange={setFilterCurriculum}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Curriculum" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Curriculums</SelectItem>
-                <SelectItem value="CBE">CBE</SelectItem>
-                <SelectItem value="Edexcel">Edexcel</SelectItem>
-                <SelectItem value="Islamic">Islamic</SelectItem>
-              </SelectContent>
-            </Select>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gradient-primary" onClick={resetForm}>
