@@ -59,7 +59,7 @@ export default function Students() {
   const { students, loading, addStudent, updateStudent, deleteStudent } = useStudents();
   const { classes } = useClasses();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCurriculum, setFilterCurriculum] = useState<string>('all');
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
