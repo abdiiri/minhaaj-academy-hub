@@ -225,18 +225,6 @@ export default function Students() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Select value={filterCurriculum} onValueChange={setFilterCurriculum}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by curriculum" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Curriculums</SelectItem>
-                  <SelectItem value="CBE">CBE</SelectItem>
-                  <SelectItem value="Edexcel">Edexcel</SelectItem>
-                  <SelectItem value="Islamic">Islamic</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>
