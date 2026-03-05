@@ -218,7 +218,7 @@ export default function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>School Name</Label>
-                    <Input defaultValue="Minhaaj Academy" />
+                    <Input defaultValue="Al Ishraq Academy" />
                   </div>
                   <div className="space-y-2">
                     <Label>School Group</Label>
