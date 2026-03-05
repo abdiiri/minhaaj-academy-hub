@@ -258,7 +258,7 @@ export default function Students() {
                       <TableHead>Admission No.</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Class</TableHead>
-                      <TableHead>Curriculum</TableHead>
+                      
                       <TableHead>Parent</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
