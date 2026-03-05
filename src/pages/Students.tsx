@@ -275,15 +275,6 @@ export default function Students() {
                         </TableCell>
                         <TableCell>{student.classes?.name || 'Unassigned'}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={
-                            student.curriculum === 'CBE' ? 'bg-primary/5 text-primary' :
-                            student.curriculum === 'Edexcel' ? 'bg-secondary/5 text-secondary' :
-                            'bg-accent/5 text-accent'
-                          }>
-                            {student.curriculum}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
                           <div>
                             <p className="text-sm">{student.parent_name || '-'}</p>
                             <p className="text-xs text-muted-foreground">{student.parent_phone || '-'}</p>

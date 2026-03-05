@@ -455,7 +455,7 @@ export default function Payments() {
             <Card>
               <CardHeader>
                 <CardTitle>Student Fee Balances</CardTitle>
-                <CardDescription>View total fees, paid amounts, and outstanding balances</CardDescription>
+                <CardDescription>View total expected money, paid amounts, and balances</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">

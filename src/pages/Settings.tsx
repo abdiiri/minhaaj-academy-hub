@@ -592,19 +592,6 @@ export default function Settings() {
                     onChange={e => setFeeFormData(prev => ({ ...prev, level: e.target.value }))}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Curriculum</Label>
-                  <Select value={feeFormData.curriculum} onValueChange={v => setFeeFormData(prev => ({ ...prev, curriculum: v }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CBE">CBE</SelectItem>
-                      <SelectItem value="Edexcel">Edexcel</SelectItem>
-                      <SelectItem value="Islamic">Islamic</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
               <div className="space-y-2">
                 <Label>Academic Year</Label>

@@ -229,15 +229,6 @@ export default function Classes() {
                             {cls.academic_year}
                           </CardDescription>
                         </div>
-                        <Badge className={
-                          cls.curriculum === 'CBE' 
-                            ? 'bg-primary/10 text-primary' 
-                            : cls.curriculum === 'Edexcel'
-                            ? 'bg-secondary/10 text-secondary'
-                            : 'bg-accent/10 text-accent'
-                        }>
-                          {cls.curriculum}
-                        </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
