@@ -296,9 +296,6 @@ export default function ParentDashboard() {
                                 <BookOpen className="h-3 w-3 mr-1" />
                                 {balance?.className}
                               </Badge>
-                              <Badge variant="outline" className="bg-primary/5">
-                                {student.curriculum}
-                              </Badge>
                             </div>
                           </div>
                         </div>
