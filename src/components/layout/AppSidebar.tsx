@@ -62,7 +62,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-3">
           <img 
             src={logo} 
-            alt="Minhaaj Academy" 
+            alt="Al Ishraq Academy" 
             className="h-10 w-auto"
           />
           {open && (
