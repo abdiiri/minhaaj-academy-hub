@@ -84,8 +84,7 @@ export default function Students() {
       student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.admission_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCurriculum = filterCurriculum === 'all' || student.curriculum === filterCurriculum;
-    return matchesSearch && matchesCurriculum;
+    return matchesSearch;
   });
 
   const resetForm = () => {
