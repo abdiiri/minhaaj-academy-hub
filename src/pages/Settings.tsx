@@ -226,7 +226,7 @@ export default function Settings() {
                   </div>
                   <div className="space-y-2">
                     <Label>Tagline</Label>
-                    <Input defaultValue="Faith. Foundation. Future" />
+                    <Input defaultValue="Education is Light" />
                   </div>
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
