@@ -226,7 +226,7 @@ export default function Classes() {
                         <div>
                           <CardTitle className="text-xl">{cls.name}</CardTitle>
                           <CardDescription>
-                            {cls.curriculum} • {cls.academic_year}
+                            {cls.academic_year}
                           </CardDescription>
                         </div>
                         <Badge className={
