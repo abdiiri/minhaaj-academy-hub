@@ -366,7 +366,7 @@ export default function Settings() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Level</TableHead>
-                            <TableHead>Curriculum</TableHead>
+                            
                             <TableHead>Academic Year</TableHead>
                             <TableHead className="text-right">Tuition</TableHead>
                             <TableHead className="text-right">Activity</TableHead>
