@@ -178,24 +178,6 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Pending Approvals</p>
-                    <p className="text-2xl font-bold text-warning mt-2">
-                      {payments.filter(p => p.status === 'pending' || p.status === 'received').length}
-                    </p>
-                    <p className="text-xs mt-2 text-warning">
-                      Awaiting confirmation
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-warning/10 text-warning">
-                    <Clock className="h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 
