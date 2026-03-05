@@ -341,7 +341,7 @@ export default function Payments() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Outstanding</p>
+                  <p className="text-sm text-muted-foreground">Total Expected - Collected</p>
                   <p className="text-2xl font-bold text-destructive">KES {totalOutstanding.toLocaleString()}</p>
                 </div>
                 <Clock className="h-8 w-8 text-destructive" />
