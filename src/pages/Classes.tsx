@@ -48,7 +48,7 @@ export default function Classes() {
   const { staff } = useStaff();
   const { students } = useStudents();
   const { secularSubjects, arabicSubjects } = useSubjects();
-  const [filterCurriculum, setFilterCurriculum] = useState<string>('all');
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
