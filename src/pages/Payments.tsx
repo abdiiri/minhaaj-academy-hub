@@ -464,7 +464,7 @@ export default function Payments() {
                       <TableRow>
                         <TableHead>Student</TableHead>
                         <TableHead>Class</TableHead>
-                        <TableHead className="text-right">Total Fees</TableHead>
+                        <TableHead className="text-right">Total Expected Money</TableHead>
                         <TableHead className="text-right">Amount Paid</TableHead>
                         <TableHead className="text-right">Balance</TableHead>
                         <TableHead>Status</TableHead>
