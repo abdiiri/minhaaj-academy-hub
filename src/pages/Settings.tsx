@@ -315,14 +315,6 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-medium mb-2">Curriculums Offered</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" className="bg-primary/5">CBE (Competency Based Education)</Button>
-                    <Button variant="outline" size="sm" className="bg-secondary/5">Edexcel iProgress</Button>
-                    <Button variant="outline" size="sm" className="bg-accent/5">Islamic Studies</Button>
-                  </div>
-                </div>
 
                 <div className="flex justify-end">
                   <Button onClick={handleSave} className="gradient-primary">
