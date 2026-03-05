@@ -127,8 +127,8 @@ export default function Login() {
              alt="Al Ishraq Academy" 
               className="h-20 w-auto mb-4"
             />
-            <h1 className="text-2xl font-bold text-foreground">Minhaaj Academy</h1>
-            <p className="text-muted-foreground font-amiri">Faith. Foundation. Future</p>
+            <h1 className="text-2xl font-bold text-foreground">Al Ishraq Academy</h1>
+            <p className="text-muted-foreground font-amiri">Education is Light</p>
           </div>
 
           <Card className="shadow-medium border-0">

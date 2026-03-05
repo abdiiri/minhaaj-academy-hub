@@ -68,10 +68,10 @@ export function AppSidebar() {
           {open && (
             <div className="flex flex-col animate-fade-in">
               <span className="font-semibold text-sidebar-foreground text-sm">
-                Minhaaj Academy
+                Al Ishraq Academy
               </span>
               <span className="text-[10px] text-sidebar-foreground/70 font-amiri">
-                Faith. Foundation. Future
+                Education is Light
               </span>
             </div>
           )}

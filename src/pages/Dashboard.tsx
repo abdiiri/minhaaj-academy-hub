@@ -112,7 +112,7 @@ export default function Dashboard() {
               Welcome back, {profile?.name?.split(' ')[0] || user?.email?.split('@')[0]}!
             </h1>
             <p className="text-muted-foreground mt-1">
-              Here's what's happening at Minhaaj Academy today.
+              Here's what's happening at Al Ishraq Academy today.
             </p>
           </div>
           <Badge variant="outline" className="w-fit">
