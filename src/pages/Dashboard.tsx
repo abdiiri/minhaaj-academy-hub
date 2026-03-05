@@ -128,7 +128,7 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Expected Fees</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total Expected Money</p>
                     <p className="text-2xl font-bold text-foreground mt-2">
                       KES {feeStats.totalExpected.toLocaleString()}
                     </p>
