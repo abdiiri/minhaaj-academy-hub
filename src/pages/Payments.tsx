@@ -348,17 +348,6 @@ export default function Payments() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending Approval</p>
-                  <p className="text-2xl font-bold">{pendingPayments.length + receivedPayments.length}</p>
-                </div>
-                <Clock className="h-8 w-8 text-warning" />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <Tabs defaultValue="records">
