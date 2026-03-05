@@ -380,7 +380,7 @@ export default function Settings() {
                           {feeStructures.map((fee) => (
                             <TableRow key={fee.id}>
                               <TableCell className="font-medium">{fee.level}</TableCell>
-                              <TableCell>{fee.curriculum}</TableCell>
+                              
                               <TableCell>{fee.academic_year}</TableCell>
                               <TableCell className="text-right">KES {Number(fee.tuition_fee).toLocaleString()}</TableCell>
                               <TableCell className="text-right">KES {Number(fee.activity_fee).toLocaleString()}</TableCell>
