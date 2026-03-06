@@ -121,7 +121,7 @@ export default function Payments() {
     payment_method: 'mpesa',
     reference_number: '',
     notes: '',
-    paid_month: format(new Date(), 'yyyy-MM'),
+    paid_month: '',
   });
   const [manualTotalFee, setManualTotalFee] = useState<number>(0);
   const [proofFile, setProofFile] = useState<File | null>(null);
