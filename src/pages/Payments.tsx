@@ -121,7 +121,7 @@ export default function Payments() {
     payment_method: 'mpesa',
     reference_number: '',
     notes: '',
-    paid_month: format(new Date(), 'yyyy-MM'),
+    paid_month: '',
   });
   const [manualTotalFee, setManualTotalFee] = useState<number>(0);
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -236,7 +236,7 @@ export default function Payments() {
         payment_method: 'mpesa',
         reference_number: '',
         notes: '',
-        paid_month: format(new Date(), 'yyyy-MM'),
+        paid_month: '',
       });
       setProofFile(null);
       setSelectedStudentForPayment(null);
@@ -670,7 +670,7 @@ export default function Payments() {
                   return (
                     <div className="p-4 bg-muted rounded-lg space-y-3">
                       <div className="space-y-2">
-                        <Label>Total Fee (KES)</Label>
+                        <Label>Total Expected (KES)</Label>
                         <Input 
                           type="number" 
                           placeholder="0" 
@@ -678,7 +678,6 @@ export default function Payments() {
                           onChange={e => {
                             const val = Math.max(0, Number(e.target.value));
                             setManualTotalFee(val);
-                            // Re-cap amount if needed
                             const newMax = Math.max(0, val - alreadyPaid);
                             setFormData(prev => ({ ...prev, amount: Math.min(prev.amount, newMax) }));
                           }}
@@ -689,7 +688,7 @@ export default function Payments() {
                         <span className="font-bold text-success">KES {alreadyPaid.toLocaleString()}</span>
                       </div>
                       <div className="space-y-2">
-                        <Label>Amount Paid (KES)</Label>
+                        <Label>Amount Collected (KES)</Label>
                         <Input 
                           type="number" 
                           placeholder="0" 
@@ -710,13 +709,61 @@ export default function Payments() {
                 })()}
 
                 <div className="space-y-2">
-                  <Label>Payment Month</Label>
-                  <Input 
-                    type="month" 
-                    value={formData.paid_month || ''} 
-                    onChange={e => setFormData(prev => ({ ...prev, paid_month: e.target.value }))}
-                  />
+                  <Label>Payment Period</Label>
+                  <Select value={formData.paid_month?.startsWith('Term') ? 'term' : formData.paid_month ? 'month' : ''} onValueChange={v => {
+                    if (v === 'term') setFormData(prev => ({ ...prev, paid_month: 'Term 1' }));
+                    else if (v === 'month') setFormData(prev => ({ ...prev, paid_month: 'January' }));
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select period type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="term">Per Term</SelectItem>
+                      <SelectItem value="month">Per Month</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {formData.paid_month?.startsWith('Term') && (
+                  <div className="space-y-2">
+                    <Label>Select Term</Label>
+                    <Select value={formData.paid_month} onValueChange={v => setFormData(prev => ({ ...prev, paid_month: v }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Term 1">Term 1</SelectItem>
+                        <SelectItem value="Term 2">Term 2</SelectItem>
+                        <SelectItem value="Term 3">Term 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {formData.paid_month && !formData.paid_month.startsWith('Term') && (
+                  <div className="space-y-2">
+                    <Label>Select Month</Label>
+                    <Select value={formData.paid_month} onValueChange={v => setFormData(prev => ({ ...prev, paid_month: v }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="January">January</SelectItem>
+                        <SelectItem value="February">February</SelectItem>
+                        <SelectItem value="March">March</SelectItem>
+                        <SelectItem value="April">April</SelectItem>
+                        <SelectItem value="May">May</SelectItem>
+                        <SelectItem value="June">June</SelectItem>
+                        <SelectItem value="July">July</SelectItem>
+                        <SelectItem value="August">August</SelectItem>
+                        <SelectItem value="September">September</SelectItem>
+                        <SelectItem value="October">October</SelectItem>
+                        <SelectItem value="November">November</SelectItem>
+                        <SelectItem value="December">December</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Payment Method</Label>
