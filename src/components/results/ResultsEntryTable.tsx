@@ -24,6 +24,7 @@ interface ResultsEntryTableProps {
   existingResults: Result[];
   examType: string;
   examDate: string;
+  subjectType: 'secular' | 'arabic';
   onSaveResults: (results: ResultInsert[]) => Promise<void>;
   isSaving: boolean;
 }
@@ -36,6 +37,7 @@ export function ResultsEntryTable({
   existingResults,
   examType,
   examDate,
+  subjectType,
   onSaveResults,
   isSaving,
 }: ResultsEntryTableProps) {
@@ -43,10 +45,9 @@ export function ResultsEntryTable({
 
   // Get all subjects for the class
   const allSubjects = useMemo(() => {
-    const secular = selectedClass.secular_subjects || [];
-    const arabic = selectedClass.arabic_subjects || [];
-    return [...secular, ...arabic];
-  }, [selectedClass]);
+    if (subjectType === 'secular') return selectedClass.secular_subjects || [];
+    return selectedClass.arabic_subjects || [];
+  }, [selectedClass, subjectType]);
 
   // Filter students by class
   const classStudents = useMemo(() => {
