@@ -37,6 +37,7 @@ export function ResultsEntryTable({
   existingResults,
   examType,
   examDate,
+  subjectType,
   onSaveResults,
   isSaving,
 }: ResultsEntryTableProps) {
