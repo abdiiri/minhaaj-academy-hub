@@ -236,7 +236,7 @@ export default function Payments() {
         payment_method: 'mpesa',
         reference_number: '',
         notes: '',
-        paid_month: format(new Date(), 'yyyy-MM'),
+        paid_month: '',
       });
       setProofFile(null);
       setSelectedStudentForPayment(null);
