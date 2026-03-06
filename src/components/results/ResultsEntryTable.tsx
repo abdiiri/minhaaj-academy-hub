@@ -24,6 +24,7 @@ interface ResultsEntryTableProps {
   existingResults: Result[];
   examType: string;
   examDate: string;
+  subjectType: 'secular' | 'arabic';
   onSaveResults: (results: ResultInsert[]) => Promise<void>;
   isSaving: boolean;
 }
